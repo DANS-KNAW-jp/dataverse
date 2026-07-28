@@ -45,18 +45,26 @@ public class LocalSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand 
         return supportsDelete();
     }
 
+    public static boolean supportsDelete() {
+        return true;
+    }
     @Override
-    public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore, 
-            Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
+    public boolean canDelete() {
+        return supportsDelete();
+    }
+
+    @Override
+    public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore,
+        Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
         logger.fine("In LocalSubmitToArchive...");
         String localPath = requestedSettings.get(BagItLocalPath.toString());
         String zipName = null;
-        
+
         // Set a failure status that will be updated if we succeed
         JsonObjectBuilder statusObject = Json.createObjectBuilder();
         statusObject.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_FAILURE);
         statusObject.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE, "Bag not transferred");
-        
+
         try {
 
             Dataset dataset = dv.getDataset();
@@ -119,7 +127,7 @@ public class LocalSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand 
             for (FileEntry entry : bagger.getOversizedFiles()) {
                 String childPath = entry.getChildPath(entry.getChildTitle());
                 File destFile = new File(localPath,
-                        localPath + "/" + spaceName + "v" + dv.getFriendlyVersionNumber() + "/" + childPath);
+                    localPath + "/" + spaceName + "v" + dv.getFriendlyVersionNumber() + "/" + childPath);
                 logger.fine("Downloading oversized file to " + destFile.getAbsolutePath());
                 destFile.getParentFile().mkdirs();
                 try (InputStream is = bagger.getInputStreamSupplier(entry.getDataUrl()).get()) {
@@ -145,7 +153,7 @@ public class LocalSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand 
         } finally {
             dv.setArchivalCopyLocation(statusObject.build().toString());
         }
-        
+
         return WorkflowStepResult.OK;
     }
 

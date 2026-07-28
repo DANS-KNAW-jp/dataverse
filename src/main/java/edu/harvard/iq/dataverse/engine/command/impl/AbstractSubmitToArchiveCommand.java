@@ -48,7 +48,7 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
     private static final Logger logger = Logger.getLogger(AbstractSubmitToArchiveCommand.class.getName());
     private static final int MAX_ZIP_WAIT = 20000;
     private static final int DEFAULT_THREADS = 2;
-    
+
     public AbstractSubmitToArchiveCommand(DataverseRequest aRequest, DatasetVersion version) {
         super(aRequest, version.getDataset());
         this.version = version;
@@ -57,14 +57,14 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public DatasetVersion execute(CommandContext ctxt) throws CommandException {
-        
-     // Check for locks while we're still in a transaction
+
+        // Check for locks while we're still in a transaction
         Dataset dataset = version.getDataset();
         if (dataset.getLockFor(Reason.finalizePublication) != null
-                || dataset.getLockFor(Reason.FileValidationFailed) != null) {
+            || dataset.getLockFor(Reason.FileValidationFailed) != null) {
             throw new CommandException("Dataset is locked and cannot be archived", this);
         }
-        
+
         String settings = ctxt.settings().getValueForKey(SettingsServiceBean.Key.ArchiverSettings);
         List<String> settingsList = ListSplitUtil.split(settings);
         for (String settingName : settingsList) {
@@ -75,7 +75,7 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
                 requestedSettings.put(settingName, ctxt.settings().getValueForKey(setting));
             }
         }
-        
+
         AuthenticatedUser user = getRequest().getAuthenticatedUser();
         ApiToken token = ctxt.authentication().findApiTokenByUser(user);
         if (token == null) {
@@ -86,7 +86,7 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
             JsonObjectBuilder statusObjectBuilder = Json.createObjectBuilder();
             statusObjectBuilder.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_FAILURE);
             statusObjectBuilder.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE,
-                    "Successful archiving of earlier versions is required.");
+                "Successful archiving of earlier versions is required.");
             version.setArchivalCopyLocation(statusObjectBuilder.build().toString());
             // Persist the failure status
             persistResult(ctxt, version);
@@ -178,11 +178,11 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
      * workflow in which execute() is never called and therefore in which all
      * variables must be sent as method parameters. (Nominally version is set in the
      * constructor and could be dropped from the parameter list.)
-     * 
+     *
      * @param version - the DatasetVersion to archive
      * @param dataCiteXml
-     * @param ore  
-     * @param terms 
+     * @param ore
+     * @param terms
      * @param token - an API Token for the user performing this action
      * @param requestedSettings - a map of the names/values for settings required by this archiver (sent because this class is not part of the EJB context (by design) and has no direct access to service beans).
      */
@@ -195,7 +195,7 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
                 return Integer.valueOf(requestedSettings.get(BagGenerator.BAG_GENERATOR_THREADS));
             } catch (NumberFormatException nfe) {
                 logger.warning("Can't parse the value of setting " + BagGenerator.BAG_GENERATOR_THREADS
-                        + " as an integer - using default:" + DEFAULT_THREADS);
+                    + " as an integer - using default:" + DEFAULT_THREADS);
             }
         }
         return DEFAULT_THREADS;
@@ -204,18 +204,18 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
     @Override
     public String describe() {
         return super.describe() + "DatasetVersion: [" + version.getId() + " (v"
-                + version.getFriendlyVersionNumber()+")]";
+            + version.getFriendlyVersionNumber()+")]";
     }
-    
+
     public String getDataCiteXml(DatasetVersion dv) {
         DataCitation dc = new DataCitation(dv);
         Map<String, String> metadata = dc.getDataCiteMetadata();
         return DOIDataCiteRegisterService.getMetadataFromDvObject(dv.getDataset().getGlobalId().asString(), metadata,
-                dv.getDataset());
+            dv.getDataset());
     }
 
     public Thread startBagThread(DatasetVersion dv, PipedInputStream in, DigestInputStream digestInputStream2,
-            String dataciteXml, JsonObject ore, Map<String, JsonLDTerm> terms, ApiToken token) throws IOException, InterruptedException {
+        String dataciteXml, JsonObject ore, Map<String, JsonLDTerm> terms, ApiToken token) throws IOException, InterruptedException {
         Thread bagThread = new Thread(new Runnable() {
             public void run() {
                 try (PipedOutputStream out = new PipedOutputStream(in)) {
@@ -233,9 +233,9 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
                         digestInputStream2.close();
                     } catch (Exception ex) {
                         logger.warning(ex.getLocalizedMessage());
-                }
+                    }
                     throw new RuntimeException("Error creating bag: " + e.getMessage());
-            }
+                }
             }
         });
         bagThread.start();
@@ -257,7 +257,7 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
          * the pipe. (Note the PipedInputStream buffer is set at 100K above - I didn't
          * want to test whether that means that exactly 100K bytes will be available()
          * for large datasets or not, so the test below is at 90K.)
-         * 
+         *
          * An additional sanity check limits the wait to 20K (MAX_ZIP_WAIT) seconds. The BagGenerator
          * has been used to archive >120K files, 2K directories, and ~600GB files on the
          * SEAD project (streaming content to disk rather than over an internet
@@ -282,43 +282,43 @@ public abstract class AbstractSubmitToArchiveCommand extends AbstractCommand<Dat
 
     public static boolean isArchivable(Dataset dataset, SettingsWrapper settingsWrapper) {
         return true;
-   }
-   
-   //Check if the chosen archiver imposes single-version-only archiving - in a View context
-   public static boolean isSingleVersion(SettingsWrapper settingsWrapper) {
-       return false;
-  }
- 
-   //Check if the chosen archiver imposes single-version-only archiving - in the API
-   public static boolean isSingleVersion(SettingsServiceBean settingsService) {
-       return false;
-  }
-
-  /** Whether the archiver can delete existing archival files (and thus can retry when the existing files are incomplete/obsolete)
-   * A static version supports calls via reflection while the instance method supports inheritance for use on actual command instances (see DatasetPage for both use cases).
-   * @return
-   */
-  public static boolean supportsDelete() {
-      return false;
-  }
-
-  public boolean canDelete() {
-      return supportsDelete();
-  }
-
-  protected String getDataCiteFileName(String spaceName, DatasetVersion dv) {
-    return spaceName + "_datacite.v" + dv.getFriendlyVersionNumber();
-  }
-
-  protected String getFileName(String spaceName, DatasetVersion dv) {
-    return spaceName + ".v" + dv.getFriendlyVersionNumber();
-  }
-
-  protected String getSpaceName(Dataset dataset) {
-    if (spaceName == null) {
-        spaceName = dataset.getGlobalId().asString().replace(':', '-').replace('/', '-').replace('.', '-')
-                .toLowerCase();
     }
-    return spaceName;
-  }
+
+    //Check if the chosen archiver imposes single-version-only archiving - in a View context
+    public static boolean isSingleVersion(SettingsWrapper settingsWrapper) {
+        return false;
+    }
+
+    //Check if the chosen archiver imposes single-version-only archiving - in the API
+    public static boolean isSingleVersion(SettingsServiceBean settingsService) {
+        return false;
+    }
+
+    /** Whether the archiver can delete existing archival files (and thus can retry when the existing files are incomplete/obsolete)
+     * A static version supports calls via reflection while the instance method supports inheritance for use on actual command instances (see DatasetPage for both use cases).
+     * @return
+     */
+    public static boolean supportsDelete() {
+        return false;
+    }
+
+    public boolean canDelete() {
+        return supportsDelete();
+    }
+
+    protected String getDataCiteFileName(String spaceName, DatasetVersion dv) {
+        return spaceName + "_datacite.v" + dv.getFriendlyVersionNumber();
+    }
+
+    protected String getFileName(String spaceName, DatasetVersion dv) {
+        return spaceName + ".v" + dv.getFriendlyVersionNumber();
+    }
+
+    protected String getSpaceName(Dataset dataset) {
+        if (spaceName == null) {
+            spaceName = dataset.getGlobalId().asString().replace(':', '-').replace('/', '-').replace('.', '-')
+                .toLowerCase();
+        }
+        return spaceName;
+    }
 }

@@ -66,17 +66,17 @@ public class ArchivalSubmissionWorkflowStep implements WorkflowStep {
                 return new Failure("Earlier versions must be successfully archived first",
                         "Archival prerequisites not met");
             }
-            
+
             // Generate DataCite XML
             String dataCiteXml = archiveCommand.getDataCiteXml(version);
-            
+
             // Generate OREMap
             OREMap oreMap = new OREMap(version, false);
             JsonObject ore = oreMap.getOREMap();
-            
+
             // Get JSON-LD terms
             Map<String, JsonLDTerm> terms = AbstractSubmitToArchiveCommand.getJsonLDTerms(oreMap);
-            
+
             // Call the updated method with all required parameters
             /*
              * Note: because this must complete before the workflow can complete and update the version status
@@ -91,14 +91,13 @@ public class ArchivalSubmissionWorkflowStep implements WorkflowStep {
              */
 
             return archiveCommand.performArchiveSubmission(
-                version, 
-                dataCiteXml, 
-                ore, 
-                terms, 
-                context.getApiToken(), 
+                version,
+                dataCiteXml,
+                ore,
+                terms,
+                context.getApiToken(),
                 requestedSettings
             );
-
         } else {
             logger.severe("No Archiver instance could be created for name: " + className);
             return new Failure("No Archiver", "Could not create instance of class: " + className);

@@ -2,6 +2,7 @@ package edu.harvard.iq.dataverse.pidproviders.doi;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -24,6 +25,9 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import edu.harvard.iq.dataverse.TermsOfAccess;
+import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
+import edu.harvard.iq.dataverse.engine.command.exception.InvalidCommandArgumentsException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.ocpsoft.common.util.Strings;
@@ -42,7 +46,6 @@ import edu.harvard.iq.dataverse.DvObject;
 import edu.harvard.iq.dataverse.ExternalIdentifier;
 import edu.harvard.iq.dataverse.FileMetadata;
 import edu.harvard.iq.dataverse.GlobalId;
-import edu.harvard.iq.dataverse.TermsOfUseAndAccess;
 import edu.harvard.iq.dataverse.api.Util;
 import edu.harvard.iq.dataverse.dataset.DatasetType;
 import edu.harvard.iq.dataverse.dataset.DatasetUtil;
@@ -836,18 +839,12 @@ public class XmlMetadataTemplate {
         List<String> kindOfDataValues = new ArrayList<String>();
         Map<String, String> attributes = new HashMap<String, String>();
         String resourceType = "Dataset";
-        String datasetTypeName = null;
         if (dvObject instanceof Dataset dataset) {
-            datasetTypeName = dataset.getDatasetType().getName();
+            String datasetTypeName = dataset.getDatasetType().getName();
             resourceType = switch (datasetTypeName) {
             case DatasetType.DATASET_TYPE_DATASET -> "Dataset";
             case DatasetType.DATASET_TYPE_SOFTWARE -> "Software";
             case DatasetType.DATASET_TYPE_WORKFLOW -> "Workflow";
-            // We are not using the “PeerReview” for resourceTypeGeneral because it is
-            // specific to scholarly communications and may carry related connotations.
-            // We've asked DataCite to support "Review" so we don't have to use "Other".
-            // See also https://github.com/datacite/datacite-suggestions/discussions/214
-            case DatasetType.DATASET_TYPE_REVIEW -> "Other";
             default -> "Dataset";
             };
         }
@@ -870,8 +867,6 @@ public class XmlMetadataTemplate {
         if (!kindOfDataValues.isEmpty()) {
             XmlWriterUtil.writeFullElementWithAttributes(xmlw, "resourceType", attributes, String.join(";", kindOfDataValues));
 
-        } else if (DatasetType.DATASET_TYPE_REVIEW.equals(datasetTypeName)) {
-            XmlWriterUtil.writeFullElementWithAttributes(xmlw, "resourceType", attributes, "Review");
         } else {
             // Write an attribute only element if there are no kindOfData values.
             xmlw.writeStartElement("resourceType");
@@ -935,9 +930,10 @@ public class XmlMetadataTemplate {
         }
 
         for (DatasetFieldCompoundValue otherIdentifier : otherIdentifiers) {
-            String identifierType = ":unav";
+            String identifierType = null;
             String identifier = null;
             for (DatasetField subField : otherIdentifier.getChildDatasetFields()) {
+                identifierType = ":unav";
                 switch (subField.getDatasetFieldType().getName()) {
                 case DatasetFieldConstant.otherIdAgency:
                     identifierType = subField.getValue();
@@ -1242,10 +1238,13 @@ public class XmlMetadataTemplate {
             dv = df.getOwner().getLatestVersionForCopy();
 
             closed = df.isRestricted();
+        } else {
+            var msg = "Expected Dataset or DataFile but got " + dvObject.getClass().getName();
+            logger.warning(msg);
+            throw new RuntimeException(msg);
         }
-        TermsOfUseAndAccess terms = dv.getTermsOfUseAndAccess();
-        boolean requestsAllowed = terms.isFileAccessRequest();
-        License license = terms.getLicense();
+        boolean requestsAllowed = dv.getTermsOfAccess().isFileAccessRequest();
+        License license = dv.getTermsOfUseOrLicense().getLicense();
 
         if (requestsAllowed && closed) {
             xmlw.writeAttribute("rightsURI", "info:eu-repo/semantics/restrictedAccess");

@@ -61,7 +61,7 @@ public class ThemeWidgetFragment implements java.io.Serializable {
     public static final String LOGOS_SUBDIR = "logos";
     public static final String LOGOS_TEMP_SUBDIR = LOGOS_SUBDIR + File.separator + "temp";
     private long maxSize = 0;
-    
+
     private File tempDir;
     private File uploadedFile;
     private File uploadedFileThumbnail;

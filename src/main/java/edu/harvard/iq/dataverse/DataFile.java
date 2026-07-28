@@ -109,7 +109,7 @@ public class DataFile extends DvObject implements Comparable {
      * The list of types should be limited to the list above in the technote
      * because the string gets passed into MessageDigest.getInstance() and you
      * can't just pass in any old string.
-     * 
+     *
      * The URIs are used in the OAI_ORE export. They are taken from the associated XML Digital Signature standards.
      */
     public enum ChecksumType {
@@ -138,7 +138,7 @@ public class DataFile extends DvObject implements Comparable {
             throw new IllegalArgumentException(
                     "ChecksumType must be one of these values: " + Arrays.asList(ChecksumType.values()) + ".");
         }
-        
+
         public static ChecksumType fromUri(String uri) {
             if (uri != null) {
                 for (ChecksumType checksumType : ChecksumType.values()) {

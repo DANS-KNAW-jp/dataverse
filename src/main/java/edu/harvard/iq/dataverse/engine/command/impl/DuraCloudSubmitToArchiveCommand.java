@@ -57,24 +57,24 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
 
     @Override
     public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, jakarta.json.JsonObject ore,
-            Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
+        Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
 
         String port = requestedSettings.get(DURACLOUD_PORT) != null ? requestedSettings.get(DURACLOUD_PORT)
-                : DEFAULT_PORT;
+            : DEFAULT_PORT;
         String dpnContext = requestedSettings.get(DURACLOUD_CONTEXT) != null ? requestedSettings.get(DURACLOUD_CONTEXT)
-                : DEFAULT_CONTEXT;
+            : DEFAULT_CONTEXT;
         String host = requestedSettings.get(DURACLOUD_HOST);
-        
+
         if (host != null) {
             Dataset dataset = dv.getDataset();
             // ToDo - change after HDC 3A changes to status reporting
             // This will make the archivalCopyLocation non-null after a failure which should
             // stop retries
-            
+
             // Use Duracloud client classes to login
             ContentStoreManager storeManager = new ContentStoreManagerImpl(host, port, dpnContext);
             Credential credential = new Credential(System.getProperty("duracloud.username"),
-                    System.getProperty("duracloud.password"));
+                System.getProperty("duracloud.password"));
             storeManager.login(credential);
             /*
              * Aliases can contain upper case characters which are not allowed in space
@@ -118,7 +118,7 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
 
                 MessageDigest messageDigest = MessageDigest.getInstance("MD5");
                 try (PipedInputStream dataciteIn = new PipedInputStream();
-                        DigestInputStream digestInputStream = new DigestInputStream(dataciteIn, messageDigest)) {
+                    DigestInputStream digestInputStream = new DigestInputStream(dataciteIn, messageDigest)) {
                     // Add datacite.xml file
 
                     Thread dcThread = new Thread(new Runnable() {
@@ -144,21 +144,21 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                         i++;
                     }
                     String checksum = store.addContent(spaceName, baseFileName + "_datacite.xml", digestInputStream,
-                            -1l, null, null, null);
+                        -1l, null, null, null);
                     logger.fine("Content: datacite.xml added with checksum: " + checksum);
                     dcThread.join();
                     String localchecksum = Hex.encodeHexString(digestInputStream.getMessageDigest().digest());
                     if (!success || !checksum.equals(localchecksum)) {
                         logger.severe("Failure on " + baseFileName);
                         logger.severe(success ? checksum + " not equal to " + localchecksum
-                                : "failed to transfer to DuraCloud");
+                            : "failed to transfer to DuraCloud");
                         try {
                             store.deleteContent(spaceName, baseFileName + "_datacite.xml");
                         } catch (ContentStoreException cse) {
                             logger.warning(cse.getMessage());
                         }
                         return new Failure("Error in transferring DataCite.xml file to DuraCloud",
-                                "DuraCloud Submission Failure: incomplete metadata transfer");
+                            "DuraCloud Submission Failure: incomplete metadata transfer");
                     }
 
                     // Store BagIt file
@@ -190,9 +190,9 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                     // Now upload the bag file
                     messageDigest = MessageDigest.getInstance("MD5");
                     try (InputStream is = Files.newInputStream(bagFile);
-                            DigestInputStream bagDigestInputStream = new DigestInputStream(is, messageDigest)) {
+                        DigestInputStream bagDigestInputStream = new DigestInputStream(is, messageDigest)) {
                         checksum = store.addContent(spaceName, fileName, bagDigestInputStream,
-                                bagFile.toFile().length(), "application/zip", null, null);
+                            bagFile.toFile().length(), "application/zip", null, null);
                         localchecksum = Hex.encodeHexString(bagDigestInputStream.getMessageDigest().digest());
 
                         if (checksum != null && checksum.equals(localchecksum)) {
@@ -208,7 +208,7 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                                 logger.warning(cse.getMessage());
                             }
                             return new Failure("Error in transferring Zip file to DuraCloud",
-                                    "DuraCloud Submission Failure: incomplete archive transfer");
+                                "DuraCloud Submission Failure: incomplete archive transfer");
                         }
                     }
 
@@ -234,7 +234,7 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                     logger.warning(e.getMessage());
                     e.printStackTrace();
                     return new Failure("Error in transferring file to DuraCloud",
-                            "DuraCloud Submission Failure: archive file not transferred");
+                        "DuraCloud Submission Failure: archive file not transferred");
                 } catch (InterruptedException e) {
                     logger.warning(e.getLocalizedMessage());
                     e.printStackTrace();
@@ -253,7 +253,7 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
                 logger.warning(e.getLocalizedMessage());
                 e.printStackTrace();
                 return new Failure("Error in transferring file to DuraCloud",
-                        "DuraCloud Submission Failure: internal error");
+                    "DuraCloud Submission Failure: internal error");
             } finally {
                 if (tempBagFile != null) {
                     try {

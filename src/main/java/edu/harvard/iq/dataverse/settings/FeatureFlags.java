@@ -254,6 +254,20 @@ public enum FeatureFlags {
      * flag makes a reason required, both in the UI and API.
      */
     REQUIRE_EMBARGO_REASON("require-embargo-reason"),
+    /**
+     * Indicates whether archival bag creation should be triggered (if configured) when a version
+     * is updated and was already successfully archived, i.e via the Update-Current-Version publication option.
+     * Since archiving can be resource intensive, it may not be worthwhile to automatically re-archive for the
+     * types of minor changes "Update-Current-Version" is intended for. Note that this flag is only effective
+     * for archivers that support deletion of existing files. When the flag is false, or the archiver cannot
+     * delete, the existing archival status will be changed to "Obsolete".
+     * 
+     * * @apiNote Raise flag by setting "dataverse.feature.archive-on-version-update"
+     * 
+     * @since Dataverse 6.10
+     */
+    ARCHIVE_ON_VERSION_UPDATE("archive-on-version-update"),
+
     ;
     
     final String flag;

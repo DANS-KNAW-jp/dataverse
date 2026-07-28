@@ -90,9 +90,17 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
         return supportsDelete();
     }
 
+    public static boolean supportsDelete() {
+        return true;
+    }
+    @Override
+    public boolean canDelete() {
+        return supportsDelete();
+    }
+
     @Override
     public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore,
-            Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
+        Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
         logger.fine("In S3SubmitToArchiveCommand...");
         JsonObject configObject = null;
 
@@ -112,7 +120,7 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
             statusObject.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_FAILURE);
             statusObject.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE, "Bag not transferred");
             ExecutorService executor = Executors.newCachedThreadPool();
-            
+
             try {
 
                 Dataset dataset = dv.getDataset();
@@ -127,18 +135,18 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
 
                 try {
                     HeadObjectRequest headDcRequest = HeadObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(dcKey)
-                            .build();
+                        .bucket(bucketName)
+                        .key(dcKey)
+                        .build();
 
                     s3.headObject(headDcRequest).join();
 
                     // If we get here, the object exists, so delete it
                     logger.fine("Found existing datacite.xml, deleting: " + dcKey);
                     DeleteObjectRequest deleteDcRequest = DeleteObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(dcKey)
-                            .build();
+                        .bucket(bucketName)
+                        .key(dcKey)
+                        .build();
 
                     CompletableFuture<DeleteObjectResponse> deleteDcFuture = s3.deleteObject(deleteDcRequest);
                     DeleteObjectResponse deleteDcResponse = deleteDcFuture.join();
@@ -158,18 +166,18 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
 
                 try {
                     HeadObjectRequest headBagRequest = HeadObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(bagKey)
-                            .build();
+                        .bucket(bucketName)
+                        .key(bagKey)
+                        .build();
 
                     s3.headObject(headBagRequest).join();
 
                     // If we get here, the object exists, so delete it
                     logger.fine("Found existing bag file, deleting: " + bagKey);
                     DeleteObjectRequest deleteBagRequest = DeleteObjectRequest.builder()
-                            .bucket(bucketName)
-                            .key(bagKey)
-                            .build();
+                        .bucket(bucketName)
+                        .key(bagKey)
+                        .build();
 
                     CompletableFuture<DeleteObjectResponse> deleteBagFuture = s3.deleteObject(deleteBagRequest);
                     DeleteObjectResponse deleteBagResponse = deleteBagFuture.join();
@@ -189,12 +197,12 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
 
                 // Add datacite.xml file
                 PutObjectRequest putRequest = PutObjectRequest.builder()
-                        .bucket(bucketName)
-                        .key(dcKey)
-                        .build();
+                    .bucket(bucketName)
+                    .key(dcKey)
+                    .build();
 
                 CompletableFuture<PutObjectResponse> putFuture = s3.putObject(putRequest,
-                        AsyncRequestBody.fromString(dataciteXml, StandardCharsets.UTF_8));
+                    AsyncRequestBody.fromString(dataciteXml, StandardCharsets.UTF_8));
 
                 // Wait for the put operation to complete
                 PutObjectResponse putResponse = putFuture.join();
@@ -214,8 +222,8 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
                     File bagFile = bagger.getBagFile(fileName);
 
                     UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                            .putObjectRequest(req -> req.bucket(bucketName).key(bagKey)).source(bagFile.toPath())
-                            .build();
+                        .putObjectRequest(req -> req.bucket(bucketName).key(bagKey)).source(bagFile.toPath())
+                        .build();
 
                     FileUpload fileUpload = tm.uploadFile(uploadFileRequest);
 
@@ -233,11 +241,11 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
                             try (InputStream is = supplier.get()) {
 
                                 PutObjectRequest filePutRequest = PutObjectRequest.builder().bucket(bucketName)
-                                        .key(fileKey).build();
+                                    .key(fileKey).build();
 
                                 UploadRequest uploadRequest = UploadRequest.builder().putObjectRequest(filePutRequest)
-                                        .requestBody(AsyncRequestBody.fromInputStream(is, entry.getSize(), executor))
-                                        .build();
+                                    .requestBody(AsyncRequestBody.fromInputStream(is, entry.getSize(), executor))
+                                    .build();
 
                                 Upload upload = tm.upload(uploadRequest);
                                 CompletedUpload completedUpload = upload.completionFuture().join();
@@ -250,18 +258,18 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
                                 }
                             } catch (IOException e) {
                                 logger.log(Level.WARNING, "Failed to get input stream for oversized file: " + fileKey,
-                                        e);
+                                    e);
                                 return new Failure("Error getting input stream for oversized file: " + fileKey);
                             }
                         }
 
                         statusObject.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_SUCCESS);
                         statusObject.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE,
-                                String.format("https://%s.s3.amazonaws.com/%s", bucketName, bagKey));
+                            String.format("https://%s.s3.amazonaws.com/%s", bucketName, bagKey));
                     } else {
                         logger.severe("Error sending file to S3: " + fileName);
                         return new Failure("Error in transferring Bag file to S3",
-                                "S3 Submission Failure: incomplete transfer");
+                            "S3 Submission Failure: incomplete transfer");
                     }
                 } else {
                     logger.warning("Could not write local Bag file " + fileName);
@@ -272,7 +280,7 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
                 logger.warning(e.getLocalizedMessage());
                 e.printStackTrace();
                 return new Failure("S3 Archiver Submission Failure",
-                        e.getLocalizedMessage() + ": check log for details");
+                    e.getLocalizedMessage() + ": check log for details");
 
             } finally {
                 executor.shutdown();
@@ -317,11 +325,11 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
         String accessKey = config.getOptionalValue("dataverse.s3archiver.access-key", String.class).orElse("");
         String secretKey = config.getOptionalValue("dataverse.s3archiver.secret-key", String.class).orElse("");
         AwsCredentialsProvider staticCredentials = StaticCredentialsProvider
-                .create(AwsBasicCredentials.create(accessKey, secretKey));
+            .create(AwsBasicCredentials.create(accessKey, secretKey));
 
         AwsCredentialsProvider credentialsProviderChain = AwsCredentialsProviderChain.builder()
-                .addCredentialsProvider(profileCredentials).addCredentialsProvider(staticCredentials)
-                .addCredentialsProvider(DefaultCredentialsProvider.create()).build();
+            .addCredentialsProvider(profileCredentials).addCredentialsProvider(staticCredentials)
+            .addCredentialsProvider(DefaultCredentialsProvider.create()).build();
 
         s3CB.credentialsProvider(credentialsProviderChain);
         s3 = s3CB.build();
