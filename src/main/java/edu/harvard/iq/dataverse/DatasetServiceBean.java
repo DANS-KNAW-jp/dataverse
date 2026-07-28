@@ -1157,7 +1157,7 @@ public class DatasetServiceBean implements java.io.Serializable {
         }
         em.flush();
     }
-    
+
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void setLastExportTimeInNewTransaction(Long datasetId, Date lastExportTime) {
         try {
@@ -1196,6 +1196,6 @@ public class DatasetServiceBean implements java.io.Serializable {
 
             logger.fine("Updating last export time from " + dataset.getLastExportTime() + " to " + freshLastExportTime);
             dataset.setLastExportTime(freshLastExportTime);
-        
+
     }
 }

@@ -226,7 +226,7 @@ public class DvObjectServiceBean implements java.io.Serializable {
     public DvObject updatePermissionIndexTimeInNewTransaction(DvObject dvObject) {
         return updatePermissionIndexTime(dvObject);
     }
-    
+
     public DvObject updatePermissionIndexTime(DvObject dvObject) {
         /**
          * @todo to avoid a possible OptimisticLockException, should we merge

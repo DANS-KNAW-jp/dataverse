@@ -98,7 +98,6 @@ public class ArchivalSubmissionWorkflowStep implements WorkflowStep {
                 context.getApiToken(), 
                 requestedSettings
             );
-
         } else {
             logger.severe("No Archiver instance could be created for name: " + className);
             return new Failure("No Archiver", "Could not create instance of class: " + className);

@@ -59,7 +59,7 @@ public class GoogleCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveCo
     public boolean canDelete() {
         return supportsDelete();
     }
-    
+
     @Override
     public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore,
             Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
@@ -81,8 +81,8 @@ public class GoogleCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveCo
 
             try (FileInputStream cloudKeyStream = new FileInputStream(cloudKeyFile)) {
                 storage = StorageOptions.newBuilder()
-                        .setCredentials(ServiceAccountCredentials.fromStream(cloudKeyStream)).setProjectId(projectName)
-                        .build().getService();
+                    .setCredentials(ServiceAccountCredentials.fromStream(cloudKeyStream)).setProjectId(projectName)
+                    .build().getService();
                 Bucket bucket = storage.get(bucketName);
 
                 Dataset dataset = dv.getDataset();
@@ -264,12 +264,11 @@ public class GoogleCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveCo
                 statusObject.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_SUCCESS);
                 statusObject.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE,
                         String.format("https://storage.cloud.google.com/%s/%s", bucketName, spaceName));
-
             } catch (Exception e) {
                 logger.warning(e.getLocalizedMessage());
                 e.printStackTrace();
                 return new Failure("GoogleCloud Submission Failure",
-                        e.getLocalizedMessage() + ": check log for details");
+                    e.getLocalizedMessage() + ": check log for details");
 
             } finally {
                 if (tempBagFile != null) {

@@ -92,10 +92,10 @@ import jakarta.enterprise.inject.spi.CDI;
  * Creates an archival zipped Bag for long-term storage. It is intended to
  * include all the information needed to reconstruct the dataset version in a
  * new Dataverse instance.
- * 
+ *
  * Note that the Dataverse-Bag-Version written in the generateInfoFile() method
  * should be updated any time the content/structure of the bag is changed.
- * 
+ *
  */
 public class BagGenerator {
 
@@ -116,9 +116,9 @@ public class BagGenerator {
 
     private int timeout = 300;
     private RequestConfig config = RequestConfig.custom()
-            .setConnectionRequestTimeout(Timeout.ofSeconds(timeout))
+        .setConnectionRequestTimeout(Timeout.ofSeconds(timeout))
             .setResponseTimeout(Timeout.ofSeconds(timeout))
-            .build();
+        .build();
     protected CloseableHttpClient client;
     private PoolingHttpClientConnectionManager cm = null;
 
@@ -159,7 +159,7 @@ public class BagGenerator {
     private List<FileEntry> oversizedFiles = new ArrayList<>();
 
     private ChecksumType defaultHashtype;
-    
+
     // Bag-info.txt field labels
     private static final String CONTACT_NAME = "Contact-Name: ";
     private static final String CONTACT_EMAIL = "Contact-Email: ";
@@ -172,7 +172,7 @@ public class BagGenerator {
     private static final String BAG_SIZE = "Bag-Size: ";
     private static final String PAYLOAD_OXUM = "Payload-Oxum: ";
     private static final String INTERNAL_SENDER_IDENTIFIER = "Internal-Sender-Identifier: ";
-    
+
     /** THIS NUMBER SHOULD CHANGE ANY TIME THE BAG CONTENTS ARE CHANGED */
     private static final String DATAVERSE_BAG_VERSION = "Dataverse-Bag-Version: 1.0";
 
@@ -180,7 +180,7 @@ public class BagGenerator {
     static final long baseWaitTimeMs = 1000; // Start with 1 second
     static final long maxWaitTimeMs = 30000; // Cap at 30 seconds
 
-    
+
     /**
      * This BagGenerator creates a BagIt version 1.0
      * (https://tools.ietf.org/html/draft-kunze-bagit-16) compliant bag that is also
@@ -276,7 +276,7 @@ public class BagGenerator {
     /*
      * Full workflow to generate new BagIt bag from ORE Map Url and to write the bag
      * to the provided output stream (Ex: File OS, FTP OS etc.).
-     * 
+     *
      * @return success true/false
      */
     public boolean generateBag(OutputStream outputStream) throws Exception {
@@ -402,7 +402,7 @@ public class BagGenerator {
         logger.fine("Creating bag: " + bagName);
 
         writeFetchFile();
-        
+
         ZipArchiveOutputStream zipArchiveOutputStream = new ZipArchiveOutputStream(outputStream);
 
         /*
@@ -618,7 +618,7 @@ public class BagGenerator {
                 // Recursively collect files from this container
                 collectAllFiles(child, currentPath, allFiles, true);
             } else {
-                
+
                 // Get file size
                 Long fileSize = null;
                 if (child.has(JsonLDTerm.filesize.getLabel())) {
@@ -634,21 +634,21 @@ public class BagGenerator {
             }
         }
     }
-    
+
 
     // Process all files in sorted order
-    private void processAllFiles(List<FileEntry> sortedFiles) 
+    private void processAllFiles(List<FileEntry> sortedFiles)
             throws IOException, ExecutionException, InterruptedException {
-        
+
         // Track titles to detect duplicates
         Set<String> titles = new HashSet<>();
-        
+
         for (FileEntry entry : sortedFiles) {
             // Extract all needed information from the JsonObject reference
             JsonObject child = entry.jsonObject;
 
             String childTitle = entry.getChildTitle();
-            
+
             // Check for duplicate titles
             if (titles.contains(childTitle)) {
                 logger.warning("**** Multiple items with the same title in: " + entry.currentPath);
@@ -656,9 +656,9 @@ public class BagGenerator {
             } else {
                 titles.add(childTitle);
             }
-            
+
             String childPath= entry.getChildPath(childTitle);
-            
+
             // Get hash if exists
             String childHash = null;
             if (child.has(JsonLDTerm.checksum.getLabel())) {
@@ -680,11 +680,11 @@ public class BagGenerator {
             }
             resourceUsed[entry.resourceIndex] = true;
             String dataUrl = entry.getDataUrl();
-            
+
             try {
                 if (childHash == null) {
                     // Generate missing hash
-                    
+
                     try (InputStream inputStream = getInputStreamSupplier(dataUrl).get()){
                         if (hashtype != null) {
                             if (hashtype.equals(DataFile.ChecksumType.SHA1)) {
@@ -840,7 +840,7 @@ public class BagGenerator {
     }
 
     private void createFileFromString(final String relPath, final String content)
-            throws IOException, ExecutionException, InterruptedException {
+        throws IOException, ExecutionException, InterruptedException {
 
         ZipArchiveEntry archiveEntry = new ZipArchiveEntry(bagName + "/" + relPath);
         archiveEntry.setMethod(ZipEntry.DEFLATED);
@@ -854,7 +854,7 @@ public class BagGenerator {
     }
 
     private void createFileFromURL(final String relPath, final String uri)
-            throws IOException, ExecutionException, InterruptedException {
+        throws IOException, ExecutionException, InterruptedException {
 
         ZipArchiveEntry archiveEntry = new ZipArchiveEntry(bagName + "/" + relPath);
         archiveEntry.setMethod(ZipEntry.DEFLATED);
@@ -903,7 +903,7 @@ public class BagGenerator {
     }
 
     public void writeTo(ZipArchiveOutputStream zipArchiveOutputStream)
-            throws IOException, ExecutionException, InterruptedException {
+        throws IOException, ExecutionException, InterruptedException {
         logger.fine("Writing dirs");
         dirs.writeTo(zipArchiveOutputStream);
         dirs.close();
@@ -931,14 +931,13 @@ public class BagGenerator {
             if (contacts.isJsonArray()) {
                 JsonArray contactsArray = contacts.getAsJsonArray();
                 for (int i = 0; i < contactsArray.size(); i++) {
-                    
                     JsonElement person = contactsArray.get(i);
                     if (person.isJsonPrimitive()) {
                         info.append(multilineWrap(CONTACT_NAME + person.getAsString()));
                         info.append(CRLF);
 
                     } else {
-                        if (contactNameTerm != null) {
+                        if (contactNameTerm != null && ((JsonObject) person).has(contactNameTerm.getLabel())) {
                             info.append(multilineWrap(CONTACT_NAME + ((JsonObject) person).get(contactNameTerm.getLabel()).getAsString()));
                             info.append(CRLF);
                         }
@@ -998,7 +997,7 @@ public class BagGenerator {
             logger.warning("No description available for BagIt Info file");
         } else {
             info.append(multilineWrap(EXTERNAL_DESCRIPTION
-                    + getSingleValue(aggregation.get(descriptionTerm.getLabel()), descriptionTextTerm.getLabel())));
+                + getSingleValue(aggregation.get(descriptionTerm.getLabel()), descriptionTextTerm.getLabel())));
 
             info.append(CRLF);
         }
@@ -1177,7 +1176,7 @@ public class BagGenerator {
      * objects containing key/values whereas a single value is sent as one object.
      * For cases where multiple values are sent, create a concatenated string so
      * that information is not lost.
-     * 
+     *
      * @param jsonElement - the root json object
      * @param key         - the key to find a value(s) for
      * @return - a single string
@@ -1236,7 +1235,7 @@ public class BagGenerator {
 
     // Logic to decide if this is a container -
     // first check for children, then check for source-specific type indicators
-    // Dataverse does not currently use containers - this is for other variants/future use 
+    // Dataverse does not currently use containers - this is for other variants/future use
     private static boolean childIsContainer(JsonObject item) {
         if (getChildren(item).size() != 0) {
             return true;
@@ -1398,7 +1397,7 @@ public class BagGenerator {
     }
 
 
-    
+
     public List<FileEntry> getOversizedFiles() {
         return oversizedFiles;
     }
@@ -1452,29 +1451,29 @@ public class BagGenerator {
         BagGenerator.numConnections = numConnections;
         logger.fine("All BagGenerators will now use " + numConnections + " threads");
     }
-    
+
  // Inner class to hold file information before processing
     public static class FileEntry implements Comparable<FileEntry> {
         final long size;
         final JsonObject jsonObject;  // Direct reference, not a copy
         final String currentPath;     // Parent directory path
         final int resourceIndex;      // Still need this for resourceUsed tracking
-        
+
         FileEntry(long size, JsonObject jsonObject, String currentPath, int resourceIndex) {
             this.size = size;
             this.jsonObject = jsonObject;
             this.currentPath = currentPath;
             this.resourceIndex = resourceIndex;
         }
-        
+
         public String getDataUrl() {
             return suppressDownloadCounts(jsonObject.get(JsonLDTerm.schemaOrg("sameAs").getLabel()).getAsString());
         }
- 
+
         public String getChildTitle() {
             return jsonObject.get(JsonLDTerm.schemaOrg("name").getLabel()).getAsString();
         }
-        
+
         public String getChildPath(String title) {
             // Build full path using stored currentPath
             String childPath = currentPath + title;
@@ -1490,7 +1489,7 @@ public class BagGenerator {
             // not a download indicating scientific use)
             return uriString + (uriString.contains("?") ? "&" : "?") + "gbrecs=true";
         }
-        
+
         @Override
         public int compareTo(FileEntry other) {
             return Long.compare(this.size, other.size);

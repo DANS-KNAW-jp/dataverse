@@ -90,6 +90,14 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
         return supportsDelete();
     }
 
+    public static boolean supportsDelete() {
+        return true;
+    }
+    @Override
+    public boolean canDelete() {
+        return supportsDelete();
+    }
+
     @Override
     public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore,
             Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
@@ -272,7 +280,7 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
                 logger.warning(e.getLocalizedMessage());
                 e.printStackTrace();
                 return new Failure("S3 Archiver Submission Failure",
-                        e.getLocalizedMessage() + ": check log for details");
+                    e.getLocalizedMessage() + ": check log for details");
 
             } finally {
                 executor.shutdown();
@@ -317,11 +325,11 @@ public class S3SubmitToArchiveCommand extends AbstractSubmitToArchiveCommand {
         String accessKey = config.getOptionalValue("dataverse.s3archiver.access-key", String.class).orElse("");
         String secretKey = config.getOptionalValue("dataverse.s3archiver.secret-key", String.class).orElse("");
         AwsCredentialsProvider staticCredentials = StaticCredentialsProvider
-                .create(AwsBasicCredentials.create(accessKey, secretKey));
+            .create(AwsBasicCredentials.create(accessKey, secretKey));
 
         AwsCredentialsProvider credentialsProviderChain = AwsCredentialsProviderChain.builder()
-                .addCredentialsProvider(profileCredentials).addCredentialsProvider(staticCredentials)
-                .addCredentialsProvider(DefaultCredentialsProvider.create()).build();
+            .addCredentialsProvider(profileCredentials).addCredentialsProvider(staticCredentials)
+            .addCredentialsProvider(DefaultCredentialsProvider.create()).build();
 
         s3CB.credentialsProvider(credentialsProviderChain);
         s3 = s3CB.build();

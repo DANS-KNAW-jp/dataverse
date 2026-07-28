@@ -45,18 +45,26 @@ public class LocalSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand 
         return supportsDelete();
     }
 
+    public static boolean supportsDelete() {
+        return true;
+    }
+    @Override
+    public boolean canDelete() {
+        return supportsDelete();
+    }
+
     @Override
     public WorkflowStepResult performArchiveSubmission(DatasetVersion dv, String dataciteXml, JsonObject ore, 
             Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
         logger.fine("In LocalSubmitToArchive...");
         String localPath = requestedSettings.get(BagItLocalPath.toString());
         String zipName = null;
-        
+
         // Set a failure status that will be updated if we succeed
         JsonObjectBuilder statusObject = Json.createObjectBuilder();
         statusObject.add(DatasetVersion.ARCHIVAL_STATUS, DatasetVersion.ARCHIVAL_STATUS_FAILURE);
         statusObject.add(DatasetVersion.ARCHIVAL_STATUS_MESSAGE, "Bag not transferred");
-        
+
         try {
 
             Dataset dataset = dv.getDataset();
@@ -145,7 +153,7 @@ public class LocalSubmitToArchiveCommand extends AbstractSubmitToArchiveCommand 
         } finally {
             dv.setArchivalCopyLocation(statusObject.build().toString());
         }
-        
+
         return WorkflowStepResult.OK;
     }
 

@@ -40,6 +40,9 @@ public class DatasetWidgetsPage implements java.io.Serializable {
     @EJB
     SystemConfig systemConfig;
 
+    @EJB
+    SystemConfig systemConfig;
+
     @Inject
     DataverseRequestServiceBean dvRequestService;
 

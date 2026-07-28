@@ -60,11 +60,11 @@ public class DuraCloudSubmitToArchiveCommand extends AbstractSubmitToArchiveComm
             Map<String, JsonLDTerm> terms, ApiToken token, Map<String, String> requestedSettings) {
 
         String port = requestedSettings.get(DURACLOUD_PORT) != null ? requestedSettings.get(DURACLOUD_PORT)
-                : DEFAULT_PORT;
+            : DEFAULT_PORT;
         String dpnContext = requestedSettings.get(DURACLOUD_CONTEXT) != null ? requestedSettings.get(DURACLOUD_CONTEXT)
-                : DEFAULT_CONTEXT;
+            : DEFAULT_CONTEXT;
         String host = requestedSettings.get(DURACLOUD_HOST);
-        
+
         if (host != null) {
             Dataset dataset = dv.getDataset();
             // ToDo - change after HDC 3A changes to status reporting

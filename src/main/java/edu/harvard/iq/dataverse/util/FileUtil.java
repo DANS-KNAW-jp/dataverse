@@ -55,6 +55,7 @@ import org.primefaces.model.file.UploadedFile;
 import ucar.nc2.NetcdfFile;
 import ucar.nc2.NetcdfFiles;
 
+import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -1175,17 +1176,18 @@ public class FileUtil implements java.io.Serializable  {
             return false;
         }
         // 1. License and Terms of Use:
-        if (datasetVersion.getTermsOfUseAndAccess() != null) {
-            License license = DatasetUtil.getLicense(datasetVersion);
-            if ((license == null && StringUtils.isNotBlank(datasetVersion.getTermsOfUseAndAccess().getTermsOfUse()))
-                    || (license != null && !license.isDefault())) {
-                logger.fine("Popup required because of license or terms of use.");
+        if (datasetVersion.getTermsOfAccess() != null) {
+            // 2. Terms of Access:
+            if (!(datasetVersion.getTermsOfAccess().getTermsOfAccess() == null) && !datasetVersion.getTermsOfAccess().getTermsOfAccess().isEmpty()) {
+                logger.fine("Popup required because of terms of access.");
                 return true;
             }
-
-            // 2. Terms of Access:
-            if (!(datasetVersion.getTermsOfUseAndAccess().getTermsOfAccess() == null) && !datasetVersion.getTermsOfUseAndAccess().getTermsOfAccess().equals("")) {
-                logger.fine("Popup required because of terms of access.");
+        }
+        if (datasetVersion.getTermsOfUseOrLicense() != null) {
+            License license = DatasetUtil.getLicense(datasetVersion);
+            if ((license == null && StringUtils.isNotBlank(datasetVersion.getTermsOfUseOrLicense().getTermsOfUse()))
+                    || (license != null && !license.isDefault())) {
+                logger.fine("Popup required because of license.");
                 return true;
             }
         }
