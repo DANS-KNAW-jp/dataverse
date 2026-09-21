@@ -138,6 +138,10 @@ public class SchemaDotOrgExporterTest {
         assertEquals("https://doi.org/10.5072/FK2/7V5MPI", json2.getJsonArray("distribution").getJsonObject(0).getString("identifier"));
         assertEquals("https://librascholar.org/api/access/datafile/42", json2.getJsonArray("distribution").getJsonObject(0).getString("contentUrl"));
         assertEquals(1, json2.getJsonArray("distribution").size());
+        assertEquals(1, json2.getJsonArray("additionalLicenses").size());
+        assertEquals("DANS Licence", json2.getJsonArray("additionalLicenses").getJsonObject(0).getJsonObject("license").getString("name"));
+        assertEquals("https://doi.org/10.17026/fp39-0x58", json2.getJsonArray("additionalLicenses").getJsonObject(0).getJsonObject("license").getString("uri"));
+        assertEquals("", json2.getJsonArray("additionalLicenses").getJsonObject(0).getJsonObject("license").getString("iconUri"));
         try (PrintWriter printWriter = new PrintWriter("/tmp/dvjsonld.json")) {
             printWriter.println(JsonUtil.prettyPrint(json2));
         }
@@ -220,6 +224,10 @@ public class SchemaDotOrgExporterTest {
         fmd.setDataFile(dataFile);
         fmd.setLabel("README.md");
         fmd.setDescription("README file.");
+        TermsOfUseOrLicense fileTerms = new TermsOfUseOrLicense();
+        License fileLicense = new License("DANS Licence", "", URI.create("https://doi.org/10.17026/fp39-0x58"), URI.create(""), true, 2l);
+        fileTerms.setLicense(fileLicense);
+        fmd.setTermsOfUseOrLicense(fileTerms);
         List<FileMetadata> fileMetadatas = new ArrayList<>();
         fileMetadatas.add(fmd);
         dataFile.setFileMetadatas(fileMetadatas);

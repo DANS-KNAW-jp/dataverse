@@ -201,6 +201,82 @@ public class DatasetVersionTest {
     }
 
     @Test
+    public void testGetJsonLdAdditionalLicenses() throws ParseException {
+        Dataset dataset = new Dataset();
+        dataset.setProtocol("doi");
+        dataset.setAuthority("10.5072/FK2");
+        dataset.setIdentifier("LK0D1H");
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setDataset(dataset);
+        datasetVersion.setVersionState(DatasetVersion.VersionState.RELEASED);
+        datasetVersion.setVersionNumber(1L);
+        datasetVersion.setMinorVersionNumber(0L);
+
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyyMMdd");
+        Date publicationDate = dateFmt.parse("19551105");
+        datasetVersion.setReleaseTime(publicationDate);
+        dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
+
+        Dataverse dataverse = new Dataverse();
+        dataverse.setName("LibraScholar");
+        dataset.setOwner(dataverse);
+
+        TermsOfAccess termsOfAccess = new TermsOfAccess();
+        datasetVersion.setTermsOfAccess(termsOfAccess);
+
+        TermsOfUseOrLicense datasetTerms = new TermsOfUseOrLicense();
+        License datasetLicense = new License();
+        datasetLicense.setName("CC0 1.0");
+        datasetLicense.setUri(URI.create("http://creativecommons.org/publicdomain/zero/1.0/"));
+        datasetLicense.setIconUrl(URI.create("/resources/images/cc0.png"));
+        datasetTerms.setLicense(datasetLicense);
+        datasetVersion.setTermsOfUseOrLicense(datasetTerms);
+
+        FileMetadata licensedFile = new FileMetadata();
+        licensedFile.setLabel("a-license.txt");
+        licensedFile.setDescription("Licensed file.");
+        licensedFile.setDatasetVersion(datasetVersion);
+        DataFile licensedDataFile = new DataFile();
+        licensedDataFile.setId(1L);
+        licensedDataFile.setContentType("text/plain");
+        licensedDataFile.setFilesize(1L);
+        licensedFile.setDataFile(licensedDataFile);
+        TermsOfUseOrLicense fileLicenseTerms = new TermsOfUseOrLicense();
+        License fileLicense = new License();
+        fileLicense.setName("DANS Licence");
+        fileLicense.setUri(URI.create("https://doi.org/10.17026/fp39-0x58"));
+        fileLicense.setIconUrl(URI.create(""));
+        fileLicenseTerms.setLicense(fileLicense);
+        licensedFile.setTermsOfUseOrLicense(fileLicenseTerms);
+
+        FileMetadata customTermsFile = new FileMetadata();
+        customTermsFile.setLabel("b-custom.txt");
+        customTermsFile.setDescription("Custom terms file.");
+        customTermsFile.setDatasetVersion(datasetVersion);
+        DataFile customTermsDataFile = new DataFile();
+        customTermsDataFile.setId(2L);
+        customTermsDataFile.setContentType("text/plain");
+        customTermsDataFile.setFilesize(2L);
+        customTermsFile.setDataFile(customTermsDataFile);
+        TermsOfUseOrLicense customTerms = new TermsOfUseOrLicense();
+        customTerms.setTermsOfUse("Custom Dataset Terms");
+        customTermsFile.setTermsOfUseOrLicense(customTerms);
+
+        datasetVersion.setFileMetadatas(List.of(licensedFile, customTermsFile));
+
+        String jsonLd = datasetVersion.getJsonLd();
+        JsonObject obj = JsonUtil.getJsonObject(jsonLd);
+
+        JsonArray additionalLicenses = obj.getJsonArray("additionalLicenses");
+        assertEquals(2, additionalLicenses.size());
+        assertEquals("DANS Licence", additionalLicenses.getJsonObject(0).getJsonObject("license").getString("name"));
+        assertEquals("https://doi.org/10.17026/fp39-0x58", additionalLicenses.getJsonObject(0).getJsonObject("license").getString("uri"));
+        assertEquals("", additionalLicenses.getJsonObject(0).getJsonObject("license").getString("iconUri"));
+        assertEquals("Custom Dataset Terms", additionalLicenses.getJsonObject(1).getString("name"));
+        assertFalse(additionalLicenses.getJsonObject(1).containsKey("license"));
+    }
+
+    @Test
     public void testGetJsonLdDraft() throws ParseException {
         Dataset dataset = new Dataset();
         License license = new License("CC0 1.0", "You can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.", URI.create("http://creativecommons.org/publicdomain/zero/1.0"), URI.create("/resources/images/cc0.png"), true, 1l);

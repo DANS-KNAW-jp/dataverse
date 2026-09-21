@@ -6,6 +6,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetUtil;
 import edu.harvard.iq.dataverse.license.License;
 import edu.harvard.iq.dataverse.settings.JvmSettings;
 import edu.harvard.iq.dataverse.util.*;
+import edu.harvard.iq.dataverse.util.json.JsonPrinter;
 import edu.harvard.iq.dataverse.util.json.JsonUtil;
 import edu.harvard.iq.dataverse.util.json.NullSafeJsonBuilder;
 import edu.harvard.iq.dataverse.workflows.WorkflowComment;
@@ -2159,6 +2160,11 @@ public class DatasetVersion implements Serializable {
                 fileArray.add(fileObject);
             }
             job.add("distribution", fileArray);
+        }
+
+        JsonArrayBuilder additionalLicenses = JsonPrinter.jsonAdditionalLicenses(fileMetadatas);
+        if (additionalLicenses != null) {
+            job.add("additionalLicenses", additionalLicenses);
         }
         jsonLd = job.build().toString();
 

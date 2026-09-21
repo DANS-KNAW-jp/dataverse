@@ -7,8 +7,10 @@ import edu.harvard.iq.dataverse.authorization.DataverseRole;
 import edu.harvard.iq.dataverse.authorization.RoleAssignee;
 import edu.harvard.iq.dataverse.authorization.users.PrivateUrlUser;
 import edu.harvard.iq.dataverse.dataset.DatasetType;
+import edu.harvard.iq.dataverse.dataset.DatasetTypeServiceBean;
 import edu.harvard.iq.dataverse.dataverse.featured.DataverseFeaturedItem;
 import edu.harvard.iq.dataverse.license.License;
+import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.mocks.MockDatasetFieldSvc;
 import edu.harvard.iq.dataverse.pidproviders.doi.AbstractDOIProvider;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrl;
@@ -17,8 +19,13 @@ import edu.harvard.iq.dataverse.util.BundleUtil;
 import edu.harvard.iq.dataverse.util.template.TemplateBuilder;
 import jakarta.json.*;
 import org.assertj.core.util.Lists;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -26,6 +33,7 @@ import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class JsonPrinterTest {
@@ -672,6 +680,53 @@ public class JsonPrinterTest {
     }
 
     @Test
+    public void testDatasetVersionWithoutAdditionaLicenses() throws java.net.URISyntaxException{
+        var pid = new GlobalId(AbstractDOIProvider.DOI_PROTOCOL, "10.5072", "FK2/BYM3IW", "/", AbstractDOIProvider.DOI_RESOLVER_URL, null);
+
+        DatasetVersion dsv = createDataset(1L).getLatestVersion();
+
+        var job = JsonPrinter.json(dsv, null, false, false, false, true, true );
+        assertNotNull(job);
+        var jsonObject = job.build();
+        System.out.println(JsonUtil.prettyPrint(jsonObject.toString()));
+        assertThat(jsonObject).doesNotContainKey("additionalLicenses");
+    }
+
+    @Test
+    public void testDatasetVersionWithAdditionalLicenses() throws java.net.URISyntaxException {
+        DatasetVersion dsv = createDataset(1L).getLatestVersion();
+        dsv.setFileMetadatas(List.of(new FileMetadata(), new FileMetadata()));
+        var fileMetadata0 = dsv.getFileMetadatas().get(0);
+        var fileMetadata1 = dsv.getFileMetadatas().get(1);
+
+        fileMetadata0.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        fileMetadata0.setDatasetVersion(dsv);
+        fileMetadata0.setDataFile(new DataFile());
+        fileMetadata0.getTermsOfUseOrLicense().setTermsOfUse("special terms of use");
+
+        fileMetadata1.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        fileMetadata1.setDatasetVersion(dsv);
+        fileMetadata1.setDataFile(new DataFile());
+        fileMetadata1.getTermsOfUseOrLicense().setLicense(new License());
+        fileMetadata1.getTermsOfUseOrLicense().getLicense().setName("Test License");
+        fileMetadata1.getTermsOfUseOrLicense().getLicense().setUri(new java.net.URI("rababera"));
+        fileMetadata1.getTermsOfUseOrLicense().getLicense().setIconUrl(new java.net.URI("blabla"));
+
+        var job = JsonPrinter.json(dsv, null, false, false, false, true, true);
+        assertNotNull(job);
+        var jsonObject = job.build();
+        assertThat(jsonObject).containsKey("additionalLicenses");
+
+        var jsonString = JsonUtil.prettyPrint(jsonObject.toString());
+        System.out.println(jsonString);
+        var parsedObject = JsonUtil.getJsonObject(jsonString);
+        assertThat(parsedObject).containsKey("additionalLicenses");
+
+        // Note that the parser does not stumble over the additionalLicenses
+        // this is tested with JsonParserTest.testParseDatasetVersionWithAdditionalLicense
+    }
+
+    @Test
     public void testJsonTemplate() {
         // Setup a test Template
         Template template = TemplateBuilder.aTemplate().build();
@@ -740,7 +795,8 @@ public class JsonPrinterTest {
         dataverse.setPublicationDate(Timestamp.from(Instant.now()));
         return dataverse;
     }
-    private Dataset createDataset(long id) {
+
+    public static Dataset createDataset(long id) {
         Dataset dataset = new Dataset();
         DatasetVersion dsVersion = new DatasetVersion();
         dsVersion.setDataset(dataset);
@@ -761,7 +817,8 @@ public class JsonPrinterTest {
         dsVersion.setTermsOfAccess(new TermsOfAccess());
         dsVersion.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
         dataset.setId(id);
-
+        dataset.setDatasetType(new DatasetType());
+        dataset.getDatasetType().setName("datasetType");
         dataset.setVersions(List.of(dsVersion));
         dataset.setPublicationDate(Timestamp.from(Instant.now()));
         dataset.setGlobalId(new GlobalId(AbstractDOIProvider.DOI_PROTOCOL,"10.5072","FK2/BYM3IW", "/", AbstractDOIProvider.DOI_RESOLVER_URL, null));

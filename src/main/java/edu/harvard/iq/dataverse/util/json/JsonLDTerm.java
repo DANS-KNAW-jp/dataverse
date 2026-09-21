@@ -28,6 +28,8 @@ public class JsonLDTerm {
     public static JsonLDTerm sizeOfCollection = JsonLDTerm.DVCore("sizeOfCollection");
     public static JsonLDTerm studyCompletion = JsonLDTerm.DVCore("studyCompletion");
 
+    public static JsonLDTerm additionalLicenses = JsonLDTerm.DVCore("additionalLicenses");
+
     public static JsonLDTerm restricted = JsonLDTerm.DVCore("restricted");
     public static JsonLDTerm embargoed = JsonLDTerm.DVCore("embargoed");
     public static JsonLDTerm embargoDateAvailable = JsonLDTerm.DVCore("dateAvailable");

@@ -43,6 +43,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -531,7 +532,20 @@ public class JsonParserTest {
             assertDoesNotThrow(() -> sut.parseDatasetVersion(dsJson));
         }
     }
-    
+
+    /**
+     * Expect no exception when the dataset version JSON contains an additionalLicense block.
+     * @throws IOException when test file IO goes wrong - this is bad.
+     */
+    @Test
+    void testParseDatasetVersionWithAdditionalLicense() throws IOException {
+        try (var is = ClassLoader.getSystemResourceAsStream("json/complete-dataset-with-additional-licenses.json")) {
+            var dsJson = JsonUtil.getJsonObjectFromInputStream(is);
+            assertThat(dsJson).containsKey("additionalLicenses");
+            assertDoesNotThrow(() -> sut.parseDatasetVersion(dsJson));
+        }
+    }
+
     @Test
     public void testIpGroupRoundTrip() {
         

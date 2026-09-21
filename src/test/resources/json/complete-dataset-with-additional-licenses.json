@@ -1,0 +1,176 @@
+{
+  "id": 2,
+  "versionState": "DRAFT",
+  "distributionDate": "Distribution Date",
+  "productionDate": "Production Date",
+  "lastUpdateTime": "2015-01-14T03:58:27Z",
+  "createTime": "2015-01-14T03:48:30Z",
+  "metadataBlocks": {
+    "citation": {
+      "displayName": "Citation Metadata",
+      "fields": [
+        {
+          "typeName": "title",
+          "multiple": false,
+          "typeClass": "primitive",
+          "value": "Sample-published-dataset (updated)"
+        },
+        {
+          "typeName": "author",
+          "multiple": true,
+          "typeClass": "compound",
+          "value": [
+            {
+              "authorName": {
+                "typeName": "authorName",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "Kew, Susie"
+              },
+              "authorAffiliation": {
+                "typeName": "authorAffiliation",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "Creedence Clearwater Revival"
+              }
+            }
+          ]
+        },
+        {
+          "typeName": "datasetContact",
+          "multiple": true,
+          "typeClass": "compound",
+          "value": [
+            {
+              "datasetContactName": {
+                "typeName": "datasetContactName",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "Dataverse, Admin"
+              },
+              "datasetContactAffiliation": {
+                "typeName": "datasetContactAffiliation",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "Dataverse"
+              },
+              "datasetContactEmail": {
+                "typeName": "datasetContactEmail",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "admin@malinator.com"
+              }
+            }
+          ]
+        },
+        {
+          "typeName": "dsDescription",
+          "multiple": true,
+          "typeClass": "compound",
+          "value": [
+            {
+              "dsDescriptionValue": {
+                "typeName": "dsDescriptionValue",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "This is a public dataset"
+              },
+              "dsDescriptionDate": {
+                "typeName": "dsDescriptionDate",
+                "multiple": false,
+                "typeClass": "primitive",
+                "value": "2015-01-14"
+              }
+            }
+          ]
+        },
+        {
+          "typeName": "subject",
+          "multiple": true,
+          "typeClass": "controlledVocabulary",
+          "value": [
+            "Chemistry"
+          ]
+        },
+        {
+          "typeName": "depositor",
+          "multiple": false,
+          "typeClass": "primitive",
+          "value": "Admin Dataverse"
+        },
+        {
+          "typeName": "dateOfDeposit",
+          "multiple": false,
+          "typeClass": "primitive",
+          "value": "2015-01-14"
+        }
+      ]
+    }
+  },
+  "additionalLicenses" : [
+    {
+      "name": "DANS Licence",
+      "uri": "https://doi.org/10.17026/fp39-0x58",
+      "iconUri": ""
+    },
+    {
+      "name": "Custom Dataset Terms"
+    }
+  ],
+  "files": [
+    {
+      "label": "IMG_6234.jpg",
+      "restricted": false,
+      "version": 1,
+      "datasetVersionId": 4,
+      "dataFile": {
+        "id": 12,
+        "persistentId": "",
+        "filename": "IMG_6234.jpg",
+        "contentType": "image/jpeg",
+        "friendlyType": "JPEG Image",
+        "filesize": 303816,
+        "storageIdentifier": "file://1a0c2ebfacc-1201ada7f934",
+        "rootDataFileId": -1,
+        "checksum": {
+          "type": "SHA-1",
+          "value": "ef8cf0e5736bd712afd55645761cdbb3aa663fd2"
+        },
+        "tabularData": false,
+        "creationDate": "2026-09-21",
+        "publicationDate": "2026-09-21",
+        "lastUpdateTime": "2026-09-21T07:51:56Z",
+        "fileAccessRequest": true,
+        "restricted": false,
+        "fileMetadataId": 5
+      }
+    },
+    {
+      "label": "P1190179.JPG",
+      "restricted": true,
+      "version": 1,
+      "datasetVersionId": 4,
+      "dataFile": {
+        "id": 13,
+        "persistentId": "",
+        "filename": "P1190179.JPG",
+        "contentType": "image/jpeg",
+        "friendlyType": "JPEG Image",
+        "filesize": 6625181,
+        "storageIdentifier": "file://1a0c2ebfd23-863e5991ce02",
+        "rootDataFileId": -1,
+        "checksum": {
+          "type": "SHA-1",
+          "value": "4207242ab08c1a44d956c34e7c6194da62ffefec"
+        },
+        "tabularData": false,
+        "creationDate": "2026-09-21",
+        "publicationDate": "2026-09-21",
+        "lastUpdateTime": "2026-09-21T07:51:56Z",
+        "fileAccessRequest": true,
+        "restricted": true,
+        "fileMetadataId": 4
+      }
+    }
+  ]
+}

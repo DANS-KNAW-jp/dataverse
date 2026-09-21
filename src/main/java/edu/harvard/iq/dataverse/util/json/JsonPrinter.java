@@ -730,7 +730,46 @@ public class JsonPrinter {
         if (includeFiles) {
             bld.add("files", jsonFileMetadatas(dsv.getFileMetadatas(), forExportDataProvider));
         }
+        var licensesBuilder = jsonAdditionalLicenses(dsv.getFileMetadatas());
+        if (licensesBuilder != null) {
+            bld.add("additionalLicenses", licensesBuilder);
+        }
         return bld;
+    }
+
+    public static JsonArrayBuilder jsonAdditionalLicenses(Collection<FileMetadata> fmds) {
+        JsonArrayBuilder jsonLicences = JsonUtil.createArrayBuilder();
+        Set<Long> seenLicenseIds = new HashSet<>();
+        fmds.stream()
+            .map(FileMetadata::getTermsOfUseOrLicense)
+            .filter(Objects::nonNull)
+            .forEach(terms -> {
+                License license = terms.getLicense();
+                Long licenseId = (license != null) ? license.getId() : null;
+                seenLicenseIds.add(licenseId == null ? -1L : licenseId);
+                jsonLicences.add(JsonPrinter.json(terms));
+            });
+        if (seenLicenseIds.isEmpty()) {
+            return null;
+        } else {
+            return jsonLicences;
+        }
+    }
+    private static JsonObjectBuilder json(TermsOfUseOrLicense termsOfUseOrLicense) {
+        var listBuilder = jsonObjectBuilder();
+
+        var license = termsOfUseOrLicense.getLicense();
+        if (license == null) {
+            listBuilder.add("name", "Custom Dataset Terms");
+        }
+        else {
+            var licenseBuilder = jsonObjectBuilder();
+            licenseBuilder.add("name", license.getName())
+                .add("uri", license.getUri().toString())
+                .add("iconUri", license.getIconUrl().toString());
+            listBuilder.add("license", licenseBuilder);
+        }
+        return listBuilder;
     }
 
     public static JsonObjectBuilder jsonDataFileList(List<DataFile> dataFiles){
