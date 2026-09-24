@@ -1071,6 +1071,25 @@ public class JsonPrinter {
                 .add("datasetVersionId", fmd.getDatasetVersion().getId())
                 .add("categories", getFileCategories(fmd))
                 .add("dataFile", JsonPrinter.json(fmd.getDataFile(), fmd, forExportDataProvider, returnOwners));
+                var terms = fmd.getTermsOfUseOrLicense();
+                if(terms != null){
+                    if(terms.getLicense() == null) {
+                        builder.add("termsOfUse", terms.getTermsOfUse());
+                        builder.add("confidentialityDeclaration", terms.getConfidentialityDeclaration());
+                        builder.add("specialPermissions", terms.getSpecialPermissions());
+                        builder.add("restrictions", terms.getRestrictions());
+                        builder.add("citationRequirements", terms.getCitationRequirements());
+                        builder.add("depositorRequirements", terms.getDepositorRequirements());
+                        builder.add("conditions", terms.getConditions());
+                        builder.add("disclaimer", terms.getDisclaimer());
+                    } else {
+                        builder.add("license", jsonObjectBuilder()
+                                .add("name", terms.getLicense().getName())
+                                .add("uri", terms.getLicense().getUri().toString())
+                                .add("iconUri", terms.getLicense().getIconUrl().toString())
+                        );
+                    }
+                }
 
         if (printDatasetVersion) {
             builder.add("datasetVersion", json(fmd.getDatasetVersion(), false));

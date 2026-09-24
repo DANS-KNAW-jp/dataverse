@@ -20,6 +20,8 @@ import edu.harvard.iq.dataverse.util.template.TemplateBuilder;
 import jakarta.json.*;
 import org.assertj.core.util.Lists;
 import java.io.ByteArrayInputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Assumptions;
@@ -186,6 +188,54 @@ public class JsonPrinterTest {
         assertEquals("Survey", jsonObject.getJsonObject("dataFile").getJsonArray("tabularTags").getString(0));
         assertEquals("2021-12-03", jsonObject.getJsonObject("dataFile").getJsonObject("embargo").getString("dateAvailable"));
         assertEquals("Some reason", jsonObject.getJsonObject("dataFile").getJsonObject("embargo").getString("reason"));
+    }
+
+    @Test
+    public void testFileTermsOfUse() {
+        var fmd = new FileMetadata();
+        fmd.setDatasetVersion(new DatasetVersion());
+        fmd.getDatasetVersion().setId(Long.MIN_VALUE);
+        fmd.setVersion(Long.MIN_VALUE);
+        fmd.setDataFile(new DataFile());
+        fmd.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        fmd.getTermsOfUseOrLicense().setTermsOfUse("Some terms of use");
+        fmd.getTermsOfUseOrLicense().setDisclaimer("Some disclaimer");
+        fmd.getTermsOfUseOrLicense().setConfidentialityDeclaration("Some confidentiality declaration");
+        fmd.getTermsOfUseOrLicense().setCitationRequirements("Some citation requirements");
+        fmd.getTermsOfUseOrLicense().setConditions("Some conditions");
+        fmd.getTermsOfUseOrLicense().setDepositorRequirements("Some depositor requirements");
+        fmd.getTermsOfUseOrLicense().setRestrictions("Some restrictions");
+        fmd.getTermsOfUseOrLicense().setSpecialPermissions("Some special permissions");
+        var jsonObject = JsonPrinter.json(fmd).build();
+        System.out.println("json: " + JsonUtil.prettyPrint(jsonObject));
+        assertThat(jsonObject.getString("termsOfUse")).isEqualTo("Some terms of use");
+        assertThat(jsonObject.getString("disclaimer")).isEqualTo("Some disclaimer");
+        assertThat(jsonObject.getString("confidentialityDeclaration")).isEqualTo("Some confidentiality declaration");
+        assertThat(jsonObject.getString("citationRequirements")).isEqualTo("Some citation requirements");
+        assertThat(jsonObject.getString("conditions")).isEqualTo("Some conditions");
+        assertThat(jsonObject.getString("depositorRequirements")).isEqualTo("Some depositor requirements");
+        assertThat(jsonObject.getString("restrictions")).isEqualTo("Some restrictions");
+        assertThat(jsonObject.getString("specialPermissions")).isEqualTo("Some special permissions");
+    }
+
+    @Test
+    public void testFileLicense() throws URISyntaxException {
+        var fmd = new FileMetadata();
+        fmd.setDatasetVersion(new DatasetVersion());
+        fmd.getDatasetVersion().setId(Long.MIN_VALUE);
+        fmd.setVersion(Long.MIN_VALUE);
+        fmd.setDataFile(new DataFile());
+        fmd.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        fmd.getTermsOfUseOrLicense().setLicense(new License());
+        fmd.getTermsOfUseOrLicense().getLicense().setName("Some license name");
+        fmd.getTermsOfUseOrLicense().getLicense().setUri(new URI("https://example.com/license"));
+        fmd.getTermsOfUseOrLicense().getLicense().setIconUrl(new URI("https://example.com/icon.png"));
+        // TODO get/set iconUrl looks like a typo in cb5863720b181c688058caa26c9fc010fcbe188e
+        var jsonObject = JsonPrinter.json(fmd).build();
+        System.out.println("json: " + JsonUtil.prettyPrint(jsonObject));
+        assertThat(jsonObject.getJsonObject("license").getString("name")).isEqualTo("Some license name");
+        assertThat(jsonObject.getJsonObject("license").getString("uri")).isEqualTo("https://example.com/license");
+        assertThat(jsonObject.getJsonObject("license").getString("iconUri")).isEqualTo("https://example.com/icon.png");
     }
 
     @Test
