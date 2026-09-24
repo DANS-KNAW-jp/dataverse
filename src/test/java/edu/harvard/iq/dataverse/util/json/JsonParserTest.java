@@ -39,14 +39,19 @@ import jakarta.json.JsonValue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.ARRAY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -56,9 +61,9 @@ public class JsonParserTest {
     
     MockDatasetFieldSvc datasetFieldTypeSvc = null;
     MockSettingsSvc settingsSvc = null;
-    LicenseServiceBean licenseService = Mockito.mock(LicenseServiceBean.class);
-    DatasetTypeServiceBean datasetTypeService = Mockito.mock(DatasetTypeServiceBean.class);
-    TemplateServiceBean templateService = Mockito.mock(TemplateServiceBean.class);
+    LicenseServiceBean licenseService = mock(LicenseServiceBean.class);
+    DatasetTypeServiceBean datasetTypeService = mock(DatasetTypeServiceBean.class);
+    TemplateServiceBean templateService = mock(TemplateServiceBean.class);
     DatasetFieldType keywordType;
     DatasetFieldType descriptionType;
     DatasetFieldType subjectType;
@@ -684,6 +689,80 @@ public class JsonParserTest {
         JsonObject obj = JsonUtil.getJsonObject(regexNotEnabled);
         // when && then
         assertThrows(JsonParseException.class, () -> new JsonParser().parseMailDomainGroup(obj));
+    }
+
+    @Test
+    public void testFileWithTermsOfUseOrLicense() throws JsonParseException, URISyntaxException {
+        License defaultLicense = new License();
+        defaultLicense.setName("CC0 1.0");
+        defaultLicense.setUri(new URI("https://does.not.exist.at.dans.knaw.nl/mocked/license/uri"));
+        defaultLicense.setIconUrl(new URI("https://does.not.exist.at.dans.knaw.nl/mocked/image/uri"));
+        var licenseService = mock(LicenseServiceBean.class);
+        Mockito.when(licenseService.getByNameOrUri(any(String.class))).thenReturn(defaultLicense);
+
+        var dsv = new DatasetVersion();
+        dsv.setDataset(new Dataset());
+
+        var withTermsOfUse = new FileMetadata();
+        withTermsOfUse.setDatasetVersion(new DatasetVersion());
+        withTermsOfUse.getDatasetVersion().setId(Long.MIN_VALUE);
+        withTermsOfUse.setVersion(Long.MIN_VALUE);
+        withTermsOfUse.setDataFile(new DataFile());
+        withTermsOfUse.setLabel("label1");
+        withTermsOfUse.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        withTermsOfUse.getTermsOfUseOrLicense().setTermsOfUse("Some terms of use");
+        withTermsOfUse.getTermsOfUseOrLicense().setDisclaimer("Some disclaimer");
+        withTermsOfUse.getTermsOfUseOrLicense().setConfidentialityDeclaration("Some confidentiality declaration");
+        withTermsOfUse.getTermsOfUseOrLicense().setCitationRequirements("Some citation requirements");
+        withTermsOfUse.getTermsOfUseOrLicense().setConditions("Some conditions");
+        withTermsOfUse.getTermsOfUseOrLicense().setDepositorRequirements("Some depositor requirements");
+        withTermsOfUse.getTermsOfUseOrLicense().setRestrictions("Some restrictions");
+        withTermsOfUse.getTermsOfUseOrLicense().setSpecialPermissions("Some special permissions");
+
+        var withLicense = new FileMetadata();
+        withLicense.setDatasetVersion(new DatasetVersion());
+        withLicense.getDatasetVersion().setId(Long.MIN_VALUE);
+        withLicense.setVersion(Long.MIN_VALUE);
+        withLicense.setDataFile(new DataFile());
+        withLicense.setLabel("label2");
+        withLicense.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        withLicense.getTermsOfUseOrLicense().setLicense(new License());
+        withLicense.getTermsOfUseOrLicense().getLicense().setName("Irrelevant license name: service returns mocked values");
+        withLicense.getTermsOfUseOrLicense().getLicense().setUri(new URI("https://does.not.exist.at.dans.knaw.nl/irrelevant/uri"));
+        withLicense.getTermsOfUseOrLicense().getLicense().setIconUrl(new URI("https://does.not.exist.at.dans.knaw.nl/irrelevant/uri"));
+        // TODO get/set iconUrl looks like a typo in cb5863720b181c688058caa26c9fc010fcbe188e
+
+        var noTerms = new FileMetadata();
+        noTerms.setDatasetVersion(new DatasetVersion());
+        noTerms.getDatasetVersion().setId(Long.MIN_VALUE);
+        noTerms.setVersion(Long.MIN_VALUE);
+        noTerms.setDataFile(new DataFile());
+        noTerms.setLabel("label3");
+
+        // roundtrip
+        var builder = JsonUtil.createArrayBuilder();
+        builder.add(JsonPrinter.json(withTermsOfUse).build());
+        builder.add(JsonPrinter.json(withLicense).build());
+        builder.add(JsonPrinter.json(noTerms).build());
+        var fileMetadatas = new JsonParser(null, null, null, licenseService, null, null)
+            .parseFiles(builder.build(), dsv);
+
+        var terms1 = fileMetadatas.get(0).getTermsOfUseOrLicense();
+        assertThat(terms1.getTermsOfUse()).isEqualTo("Some terms of use");
+        assertThat(terms1.getDisclaimer()).isEqualTo("Some disclaimer");
+        assertThat(terms1.getConfidentialityDeclaration()).isEqualTo("Some confidentiality declaration");
+        assertThat(terms1.getCitationRequirements()).isEqualTo("Some citation requirements");
+        assertThat(terms1.getConditions()).isEqualTo("Some conditions");
+        assertThat(terms1.getDepositorRequirements()).isEqualTo("Some depositor requirements");
+        assertThat(terms1.getRestrictions()).isEqualTo("Some restrictions");
+        assertThat(terms1.getSpecialPermissions()).isEqualTo("Some special permissions");
+
+        var terms2 = fileMetadatas.get(1).getTermsOfUseOrLicense();
+        assertThat(terms2.getLicense().getName()).isEqualTo("CC0 1.0");
+        assertThat(terms2.getLicense().getUri()).isEqualTo(new URI("https://does.not.exist.at.dans.knaw.nl/mocked/license/uri"));
+        assertThat(terms2.getLicense().getIconUrl()).isEqualTo(new URI("https://does.not.exist.at.dans.knaw.nl/mocked/image/uri"));
+
+        assertThat(fileMetadatas.get(2).getTermsOfUseOrLicense()).isNull();
     }
 
     @Test

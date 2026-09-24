@@ -358,18 +358,21 @@ public class JsonParser {
         return enums;
     }
     
-    public TermsOfUseOrLicense parseTermsOfUseAndLicesne(JsonObject obj) throws JsonParseException {
-        JsonObject terms = obj.getJsonObject("termsOfUseOrLicense");
-        TermsOfUseOrLicense toal = new TermsOfUseOrLicense();
-        toal.setTermsOfUse(terms.getString("termsOfUse", null));
-        toal.setConfidentialityDeclaration(terms.getString("confidentialityDeclaration", null));
-        toal.setSpecialPermissions(terms.getString("specialPermissions", null));
-        toal.setRestrictions(terms.getString("restrictions", null));
-        toal.setCitationRequirements(terms.getString("citationRequirements", null));
-        toal.setDepositorRequirements(terms.getString("depositorRequirements", null));
-        toal.setConditions(terms.getString("conditions", null));
-        toal.setDisclaimer(terms.getString("disclaimer", null));
-        return toal;
+    public TermsOfUseOrLicense parseTermsOfUseOrLicense(JsonObject jsonObject) throws JsonParseException {
+        TermsOfUseOrLicense terms = new TermsOfUseOrLicense();
+        if ( jsonObject.containsKey("license") ) {
+            terms.setLicense(parseLicense(jsonObject.getJsonObject("license")));
+        }
+        terms.setTermsOfUse(jsonObject.getString("termsOfUse", null));
+        terms.setConfidentialityDeclaration(jsonObject.getString("confidentialityDeclaration", null));
+        terms.setSpecialPermissions(jsonObject.getString("specialPermissions", null));
+        terms.setRestrictions(jsonObject.getString("restrictions", null));
+        terms.setCitationRequirements(jsonObject.getString("citationRequirements", null));
+        terms.setDepositorRequirements(jsonObject.getString("depositorRequirements", null));
+        terms.setConditions(jsonObject.getString("conditions", null));
+        terms.setDisclaimer(jsonObject.getString("disclaimer", null));
+        // TODO return null if everything was empty?
+        return terms;
     }
 
     public TermsOfAccess parseTermsOfAccess(JsonObject obj) throws JsonParseException {
@@ -892,6 +895,7 @@ public class JsonParser {
                 fileMetadata.setDescription(description);
                 fileMetadata.setDatasetVersion(dsv);
 
+                fileMetadata.setTermsOfUseOrLicense(parseTermsOfUseOrLicense(filemetadataJson));
                 if ( filemetadataJson.containsKey("dataFile") ) {
                     DataFile dataFile = parseDataFile(filemetadataJson.getJsonObject("dataFile"));
                     dataFile.getFileMetadatas().add(fileMetadata);
