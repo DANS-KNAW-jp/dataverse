@@ -44,7 +44,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -66,11 +65,9 @@ import jakarta.inject.Named;
 import edu.harvard.iq.dataverse.util.file.CreateDataFileResult;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.file.UploadedFile;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonArray;
-import jakarta.json.JsonReader;
 import org.apache.commons.io.IOUtils;
 import java.util.Arrays;
 import java.util.Collection;
@@ -852,7 +849,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 hasValidTermsOfAccess = true;
                 return hasValidTermsOfAccess;
             } else {
-                hasValidTermsOfAccess = TermsOfAccessValidator.isTOUAValid(workingVersion.getTermsOfAccess(), null);
+                hasValidTermsOfAccess = TermsOfAccessValidator.isTOAValid(workingVersion.getTermsOfAccess(), null);
                 return hasValidTermsOfAccess;
             }
         }

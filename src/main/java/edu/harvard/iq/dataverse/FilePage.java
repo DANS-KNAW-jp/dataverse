@@ -36,7 +36,6 @@ import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
 import edu.harvard.iq.dataverse.makedatacount.MakeDataCountLoggingServiceBean;
 import edu.harvard.iq.dataverse.makedatacount.MakeDataCountLoggingServiceBean.MakeDataCountEntry;
 import edu.harvard.iq.dataverse.privateurl.PrivateUrlServiceBean;
-import edu.harvard.iq.dataverse.settings.FeatureFlags;
 import edu.harvard.iq.dataverse.settings.JvmSettings;
 import edu.harvard.iq.dataverse.settings.SettingsServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
@@ -64,7 +63,6 @@ import jakarta.ejb.EJBException;
 import jakarta.faces.application.FacesMessage;
 import jakarta.faces.component.UIComponent;
 import jakarta.faces.context.FacesContext;
-import jakarta.faces.validator.ValidatorException;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -913,7 +911,7 @@ public class FilePage implements java.io.Serializable {
                hasValidTermsOfAccess = true;
                return hasValidTermsOfAccess;
             } else {
-                hasValidTermsOfAccess = TermsOfAccessValidator.isTOUAValid(fileMetadata.getDatasetVersion().getTermsOfAccess(), null);
+                hasValidTermsOfAccess = TermsOfAccessValidator.isTOAValid(fileMetadata.getDatasetVersion().getTermsOfAccess(), null);
                 return hasValidTermsOfAccess;
             }
         }    

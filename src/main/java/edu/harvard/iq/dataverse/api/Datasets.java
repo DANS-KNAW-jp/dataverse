@@ -942,14 +942,14 @@ public class Datasets extends AbstractApiBean {
                 editVersion.getTermsOfAccess().setDatasetVersion(editVersion);
                 editVersion.setTermsOfUseOrLicense(incomingVersion.getTermsOfUseOrLicense());
                 editVersion.getTermsOfUseOrLicense().setDatasetVersion(editVersion);
-                boolean hasValidTerms = TermsOfAccessValidator.isTOUAValid(editVersion.getTermsOfAccess(), null);
+                boolean hasValidTerms = TermsOfAccessValidator.isTOAValid(editVersion.getTermsOfAccess(), null);
                 if (!hasValidTerms) {
                     return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
                 }
                 Dataset managedDataset = execCommand(new UpdateDatasetVersionCommand(ds, req));
                 managedVersion = managedDataset.getOrCreateEditVersion();
             } else {
-                boolean hasValidTerms = TermsOfAccessValidator.isTOUAValid(incomingVersion.getTermsOfAccess(), null);
+                boolean hasValidTerms = TermsOfAccessValidator.isTOAValid(incomingVersion.getTermsOfAccess(), null);
                 if (!hasValidTerms) {
                     return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
                 }
@@ -1034,7 +1034,7 @@ public class Datasets extends AbstractApiBean {
             dsv = JSONLDUtil.updateDatasetVersionMDFromJsonLD(dsv, jsonLDBody, metadataBlockService, datasetFieldSvc, !replaceTerms, false, licenseSvc);
             dsv.getTermsOfAccess().setDatasetVersion(dsv);
             dsv.getTermsOfUseOrLicense().setDatasetVersion(dsv);
-            boolean hasValidTerms = TermsOfAccessValidator.isTOUAValid(dsv.getTermsOfAccess(), null);
+            boolean hasValidTerms = TermsOfAccessValidator.isTOAValid(dsv.getTermsOfAccess(), null);
             if (!hasValidTerms) {
                 return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
             }
@@ -1395,7 +1395,7 @@ public class Datasets extends AbstractApiBean {
 
             Dataset ds = findDatasetOrDie(id);
 
-            if (!TermsOfAccessValidator.isTOUAValid(ds.getLatestVersion().getTermsOfAccess(), null)) {
+            if (!TermsOfAccessValidator.isTOAValid(ds.getLatestVersion().getTermsOfAccess(), null)) {
                 return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
             }
 
@@ -1647,7 +1647,7 @@ public class Datasets extends AbstractApiBean {
             return ex.getResponse();
         }
 
-        if (!TermsOfAccessValidator.isTOUAValid(dataset.getLatestVersion().getTermsOfAccess(), null)){
+        if (!TermsOfAccessValidator.isTOAValid(dataset.getLatestVersion().getTermsOfAccess(), null)){
             return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
         }
 
@@ -1937,7 +1937,7 @@ public class Datasets extends AbstractApiBean {
             return ex.getResponse();
         }
 
-        if (!TermsOfAccessValidator.isTOUAValid(dataset.getLatestVersion().getTermsOfAccess(), null)){
+        if (!TermsOfAccessValidator.isTOAValid(dataset.getLatestVersion().getTermsOfAccess(), null)){
             return error(Status.CONFLICT, BundleUtil.getStringFromBundle("dataset.message.toua.invalid"));
         }
 

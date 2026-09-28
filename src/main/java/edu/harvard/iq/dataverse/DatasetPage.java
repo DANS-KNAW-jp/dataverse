@@ -106,7 +106,6 @@ import jakarta.faces.event.ValueChangeEvent;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
-import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.persistence.OptimisticLockException;
@@ -475,7 +474,7 @@ public class DatasetPage implements java.io.Serializable {
                hasValidTermsOfAccess = true;
                return hasValidTermsOfAccess;
             } else {
-                hasValidTermsOfAccess = TermsOfAccessValidator.isTOUAValid(dataset.getLatestVersion().getTermsOfAccess(), null);
+                hasValidTermsOfAccess = TermsOfAccessValidator.isTOAValid(dataset.getLatestVersion().getTermsOfAccess(), null);
                 return hasValidTermsOfAccess;
             }
         }    

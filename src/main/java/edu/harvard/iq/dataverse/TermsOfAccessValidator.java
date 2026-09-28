@@ -23,11 +23,11 @@ public class TermsOfAccessValidator implements ConstraintValidator<ValidateTerms
     @Override
     public boolean isValid(TermsOfAccess value, ConstraintValidatorContext context) {
 
-        return isTOUAValid(value, context);
+        return isTOAValid(value, context);
 
     }
 
-    public static boolean isTOUAValid(TermsOfAccess value, ConstraintValidatorContext context){
+    public static boolean isTOAValid(TermsOfAccess value, ConstraintValidatorContext context){
 
         //if part of a template it is valid
         if (value.getTemplate() != null){
