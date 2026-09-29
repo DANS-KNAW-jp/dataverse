@@ -17,6 +17,7 @@ import edu.harvard.iq.dataverse.DataFileTag;
 import edu.harvard.iq.dataverse.FileMetadata;
 import edu.harvard.iq.dataverse.api.Util;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
+import edu.harvard.iq.dataverse.license.License;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 
 import java.lang.reflect.Type;
@@ -68,6 +69,38 @@ public class OptionalFileParams {
     private String provFreeForm;
     public static final String PROVENANCE_FREEFORM_ATTR_NAME = "provFreeForm";
     
+    private String termsOfUse;
+    public static final String TERMS_OF_USE_ATTR_NAME = "termsOfUse";
+
+    private String confidentialityDeclaration;
+    public static final String CONFIDENTIALITY_DECLARATION_ATTR_NAME = "confidentialityDeclaration";
+
+    private String specialPermissions;
+    public static final String SPECIAL_PERMISSIONS_ATTR_NAME = "specialPermissions";
+
+    private String restrictions;
+    public static final String RESTRICTIONS_ATTR_NAME = "restrictions";
+
+    private String citationRequirements;
+    public static final String CITATION_REQUIREMENTS_ATTR_NAME = "citationRequirements";
+
+    private String depositorRequirements;
+    public static final String DEPOSITOR_REQUIREMENTS_ATTR_NAME = "depositorRequirements";
+
+    private String conditions;
+    public static final String CONDITIONS_ATTR_NAME = "conditions";
+
+    private String disclaimer;
+    public static final String DISCLAIMER_ATTR_NAME = "disclaimer";
+
+    private License license;
+    public static final String LICENSE_ATTR_NAME = "license";
+    public static final String LICENSE_NAME_ATTR_NAME = "name";
+    public static final String LICENSE_URI_ATTR_NAME = "uri";
+
+    private String licenseName;
+    private String licenseUri;
+
     private boolean restrict = false;
     public static final String RESTRICT_ATTR_NAME = "restrict";
 
@@ -178,6 +211,94 @@ public class OptionalFileParams {
         this.provFreeForm = provFreeForm;
     }
 
+    public String getTermsOfUse() {
+        return termsOfUse;
+    }
+
+    public void setTermsOfUse(String termsOfUse) {
+        this.termsOfUse = termsOfUse;
+    }
+
+    public String getConfidentialityDeclaration() {
+        return confidentialityDeclaration;
+    }
+
+    public void setConfidentialityDeclaration(String confidentialityDeclaration) {
+        this.confidentialityDeclaration = confidentialityDeclaration;
+    }
+
+    public String getSpecialPermissions() {
+        return specialPermissions;
+    }
+
+    public void setSpecialPermissions(String specialPermissions) {
+        this.specialPermissions = specialPermissions;
+    }
+
+    public String getRestrictions() {
+        return restrictions;
+    }
+
+    public void setRestrictions(String restrictions) {
+        this.restrictions = restrictions;
+    }
+
+    public String getCitationRequirements() {
+        return citationRequirements;
+    }
+
+    public void setCitationRequirements(String citationRequirements) {
+        this.citationRequirements = citationRequirements;
+    }
+
+    public String getDepositorRequirements() {
+        return depositorRequirements;
+    }
+
+    public void setDepositorRequirements(String depositorRequirements) {
+        this.depositorRequirements = depositorRequirements;
+    }
+
+    public String getConditions() {
+        return conditions;
+    }
+
+    public void setConditions(String conditions) {
+        this.conditions = conditions;
+    }
+
+    public String getDisclaimer() {
+        return disclaimer;
+    }
+
+    public void setDisclaimer(String disclaimer) {
+        this.disclaimer = disclaimer;
+    }
+
+    public License getLicense() {
+        return license;
+    }
+
+    public void setLicense(License license) {
+        this.license = license;
+    }
+
+    public String getLicenseName() {
+        return licenseName;
+    }
+
+    public void setLicenseName(String licenseName) {
+        this.licenseName = licenseName;
+    }
+
+    public String getLicenseUri() {
+        return licenseUri;
+    }
+
+    public void setLicenseUri(String licenseUri) {
+        this.licenseUri = licenseUri;
+    }
+
     public void setRestriction(boolean restrict){
         this.restrict = restrict;
     }
@@ -217,6 +338,50 @@ public class OptionalFileParams {
     public boolean hasProvFreeform() {
         return provFreeForm != null;
     }
+
+	public boolean hasTermsOfUse() {
+		return termsOfUse != null;
+	}
+
+	public boolean hasConfidentialityDeclaration() {
+		return confidentialityDeclaration != null;
+	}
+
+	public boolean hasSpecialPermissions() {
+		return specialPermissions != null;
+	}
+
+	public boolean hasRestrictions() {
+		return restrictions != null;
+	}
+
+	public boolean hasCitationRequirements() {
+		return citationRequirements != null;
+	}
+
+	public boolean hasDepositorRequirements() {
+		return depositorRequirements != null;
+	}
+
+	public boolean hasConditions() {
+		return conditions != null;
+	}
+
+	public boolean hasDisclaimer() {
+		return disclaimer != null;
+	}
+
+	public boolean hasLicense() {
+		return license != null;
+	}
+
+	public boolean hasLicenseName() {
+		return licenseName != null;
+	}
+
+	public boolean hasLicenseUri() {
+		return licenseUri != null;
+	}
 
 	public boolean hasStorageIdentifier() {
 		return ((storageIdentifier!=null)&&(!storageIdentifier.isEmpty()));
@@ -349,6 +514,92 @@ public class OptionalFileParams {
             this.provFreeForm = jsonObj.get(PROVENANCE_FREEFORM_ATTR_NAME).getAsString();
         }
         
+        // -------------------------------
+        // get termsOfUse as string
+        // -------------------------------
+        if ((jsonObj.has(TERMS_OF_USE_ATTR_NAME)) && (!jsonObj.get(TERMS_OF_USE_ATTR_NAME).isJsonNull())){
+
+            this.termsOfUse = jsonObj.get(TERMS_OF_USE_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get confidentialityDeclaration as string
+        // -------------------------------
+        if ((jsonObj.has(CONFIDENTIALITY_DECLARATION_ATTR_NAME)) && (!jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).isJsonNull())){
+
+            this.confidentialityDeclaration = jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get specialPermissions as string
+        // -------------------------------
+        if ((jsonObj.has(SPECIAL_PERMISSIONS_ATTR_NAME)) && (!jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).isJsonNull())){
+
+            this.specialPermissions = jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get restrictions as string
+        // -------------------------------
+        if ((jsonObj.has(RESTRICTIONS_ATTR_NAME)) && (!jsonObj.get(RESTRICTIONS_ATTR_NAME).isJsonNull())){
+
+            this.restrictions = jsonObj.get(RESTRICTIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get citationRequirements as string
+        // -------------------------------
+        if ((jsonObj.has(CITATION_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).isJsonNull())){
+
+            this.citationRequirements = jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get depositorRequirements as string
+        // -------------------------------
+        if ((jsonObj.has(DEPOSITOR_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).isJsonNull())){
+
+            this.depositorRequirements = jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get conditions as string
+        // -------------------------------
+        if ((jsonObj.has(CONDITIONS_ATTR_NAME)) && (!jsonObj.get(CONDITIONS_ATTR_NAME).isJsonNull())){
+
+            this.conditions = jsonObj.get(CONDITIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get disclaimer as string
+        // -------------------------------
+        if ((jsonObj.has(DISCLAIMER_ATTR_NAME)) && (!jsonObj.get(DISCLAIMER_ATTR_NAME).isJsonNull())){
+
+            this.disclaimer = jsonObj.get(DISCLAIMER_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get license object
+        // Note: This stores license info from JSON but the actual License entity
+        // should be looked up from the database using name or URI by the calling code
+        // -------------------------------
+        if ((jsonObj.has(LICENSE_ATTR_NAME)) && (!jsonObj.get(LICENSE_ATTR_NAME).isJsonNull())){
+
+            JsonObject licenseObj = jsonObj.getAsJsonObject(LICENSE_ATTR_NAME);
+
+            // Extract license name for lookup
+            if ((licenseObj.has(LICENSE_NAME_ATTR_NAME)) && (!licenseObj.get(LICENSE_NAME_ATTR_NAME).isJsonNull())){
+                this.licenseName = licenseObj.get(LICENSE_NAME_ATTR_NAME).getAsString();
+                msgt("License name from JSON: " + this.licenseName);
+            }
+
+            // Extract license URI for lookup
+            if ((licenseObj.has(LICENSE_URI_ATTR_NAME)) && (!licenseObj.get(LICENSE_URI_ATTR_NAME).isJsonNull())){
+                this.licenseUri = licenseObj.get(LICENSE_URI_ATTR_NAME).getAsString();
+                msgt("License URI from JSON: " + this.licenseUri);
+            }
+        }
+
         // -------------------------------
         // get restriction as boolean
         // -------------------------------
@@ -544,6 +795,19 @@ public class OptionalFileParams {
         }
         
         // ---------------------------
+        // Add TermsOfUseOrLicense fields
+        // Note: These fields may require special handling
+        // when applying to a FileMetadata object
+        // ---------------------------
+        // Note: termsOfUse, confidentialityDeclaration, specialPermissions,
+        // restrictions, citationRequirements, depositorRequirements,
+        // conditions, and disclaimer are typically managed at the
+        // DatasetVersion level via TermsOfUseOrLicense entity,
+        // not at the FileMetadata level.
+        //
+        // The license object can also be handled via JSON input with:
+        // "license": { "name": "...", "uri": "..." }
+        // The actual License entity lookup should be performed by the calling code.
         // Add categories
         // ---------------------------
         replaceCategoriesInDataFile(fm);
