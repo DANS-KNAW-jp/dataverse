@@ -739,6 +739,7 @@ public class JsonPrinter {
 
     public static JsonArrayBuilder jsonAdditionalLicenses(Collection<FileMetadata> fmds) {
         JsonArrayBuilder jsonLicences = JsonUtil.createArrayBuilder();
+        // TODO using Dataset.getAdditionalTermsOfUseAndLicenses broke a test
         Set<Long> seenLicenseIds = new HashSet<>();
         fmds.stream()
             .map(FileMetadata::getTermsOfUseOrLicense)

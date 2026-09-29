@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.Entity;
@@ -1024,5 +1025,28 @@ public class Dataset extends DvObjectContainer {
     @Override
     public String getTargetUrl() {
         return Dataset.TARGET_URL;
+    }
+
+    public Set<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses() {
+
+        if(getLatestVersion() == null) return new HashSet<>();
+        var fileMetadatas = this.getLatestVersion().getFileMetadatas();
+        if(fileMetadatas == null) return new HashSet<>();
+
+        return getAdditionalTermsOfUseAndLicenses(fileMetadatas);
+    }
+
+    static public Set<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses(List<FileMetadata> fileMetadatas) {
+        Set<TermsOfUseOrLicense> set = new HashSet<>();
+        fileMetadatas.stream()
+            .map(FileMetadata::getTermsOfUseOrLicense)
+            .forEach(terms -> {
+                if (terms!=null && (terms.getLicense()!=null || !StringUtil.nonEmpty(terms.getTermsOfUse()))) {
+                    var copy = terms.copyTermsOfUseOrLicense();
+                    copy.setId(null);
+                    set.add(copy);
+                }
+            });
+        return set;
     }
 }

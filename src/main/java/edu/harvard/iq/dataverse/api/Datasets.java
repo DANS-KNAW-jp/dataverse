@@ -25,6 +25,7 @@ import edu.harvard.iq.dataverse.dataset.DatasetTypeServiceBean;
 import edu.harvard.iq.dataverse.dataset.DatasetUtil;
 import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
 import edu.harvard.iq.dataverse.datasetutility.DataFileTagException;
+import edu.harvard.iq.dataverse.datasetutility.TermsOfUseOrLicenseException;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
 import edu.harvard.iq.dataverse.datasetversionsummaries.DatasetVersionSummary;
@@ -5256,7 +5257,14 @@ public class Datasets extends AbstractApiBean {
                 }
 
                 // Apply optional params
-                optionalFileParams.addOptionalParams(fmd);
+                try {
+                    optionalFileParams.addOptionalParams(fmd, dataset);
+                    // TODO maybe look for new license
+                } catch (TermsOfUseOrLicenseException ex) {
+                    // TODO should exception extend JsonException?
+                    logger.log(Level.WARNING, "Dataset metadata update: exception while parsing JSON: {0}", ex);
+                    return error(BAD_REQUEST, BundleUtil.getStringFromBundle("file.addreplace.error.parsing"));
+                }
 
                 // Store updated FileMetadata
                 fileMetadataMap.put(fileId, fmd);

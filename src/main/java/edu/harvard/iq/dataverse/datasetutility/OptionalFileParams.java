@@ -14,18 +14,21 @@ import com.google.gson.reflect.TypeToken;
 import edu.harvard.iq.dataverse.DataFile;
 import edu.harvard.iq.dataverse.DataFile.ChecksumType;
 import edu.harvard.iq.dataverse.DataFileTag;
+import edu.harvard.iq.dataverse.Dataset;
 import edu.harvard.iq.dataverse.FileMetadata;
+import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
 import edu.harvard.iq.dataverse.api.Util;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.license.License;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
+import java.util.Objects;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * This is used in conjunction with the AddReplaceFileHelper
@@ -121,6 +124,8 @@ public class OptionalFileParams {
     public static final String CHECKSUM_OBJECT_NAME = "checksum";
     public static final String CHECKSUM_OBJECT_TYPE = "@type";
     public static final String CHECKSUM_OBJECT_VALUE = "@value";
+    private boolean checkUniqueTermsOfUse;
+    private boolean lookupLicense;
 
     public OptionalFileParams() {
     }
@@ -754,17 +759,17 @@ public class OptionalFileParams {
      * 
      * Note that this call may have issues seeing fileMetadata generated before it by Dataset.getEditVersion()
      */
-    public void addOptionalParams(DataFile df) throws DataFileTagException {
+    public void addOptionalParams(DataFile df) throws DataFileTagException, TermsOfUseOrLicenseException {
         if (df == null){            
             throw new NullPointerException("The datafile cannot be null!");
         }
         
         FileMetadata fm = df.getFileMetadata();
         
-        addOptionalParams(fm);
+        addOptionalParams(fm, null);
     }
     
-    public void addOptionalParams(FileMetadata fm) throws DataFileTagException{
+    public void addOptionalParams(FileMetadata fm, Dataset dataset) throws DataFileTagException, TermsOfUseOrLicenseException {
         
         // ---------------------------
         // Add description
@@ -794,22 +799,7 @@ public class OptionalFileParams {
             fm.setProvFreeForm(this.getProvFreeform());
         }
         
-        // ---------------------------
-        // Add TermsOfUseOrLicense fields
-        // Note: These fields may require special handling
-        // when applying to a FileMetadata object
-        // ---------------------------
-        // Note: termsOfUse, confidentialityDeclaration, specialPermissions,
-        // restrictions, citationRequirements, depositorRequirements,
-        // conditions, and disclaimer are typically managed at the
-        // DatasetVersion level via TermsOfUseOrLicense entity,
-        // not at the FileMetadata level.
-        //
-        // The license object can also be handled via JSON input with:
-        // "license": { "name": "...", "uri": "..." }
-        // The actual License entity lookup should be performed by the calling code.
-        // Add categories
-        // ---------------------------
+        replaceTermOfUseOrLicense(fm, dataset);
         replaceCategoriesInDataFile(fm);
        
 
@@ -819,7 +809,83 @@ public class OptionalFileParams {
         replaceFileDataTagsInFile(fm.getDataFile());
        
     }
-    
+
+    private void replaceTermOfUseOrLicense(FileMetadata fm, Dataset dataset) throws TermsOfUseOrLicenseException {
+
+        if (fm == null) {
+            throw new NullPointerException("The fileMetadata cannot be null!");
+        }
+
+        if ((hasLicenseName() || hasLicenseUri()) && hasTermsOfUse()) {
+            throw new TermsOfUseOrLicenseException("Please provide only one of license or terms of use.");
+        }
+        if(!hasTermsOfUse() && (hasConfidentialityDeclaration() || hasSpecialPermissions() || hasRestrictions() || hasCitationRequirements() || hasDepositorRequirements() || hasConditions() || hasDisclaimer())) {
+            throw new TermsOfUseOrLicenseException("Please provide terms of use when providing related fields.");
+        }
+        if (!hasTermsOfUse() && !hasLicenseName() && !hasLicenseUri()) {
+            return;
+        }
+
+        if(fm.getTermsOfUseOrLicense() == null){
+            fm.setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+        }
+        var terms = fm.getTermsOfUseOrLicense();
+
+        if(dataset == null) throw new TermsOfUseOrLicenseException("Terms of use or license is not implemented.");
+        var otherThermsOfUseOrLicenses = dataset.getAdditionalTermsOfUseAndLicenses();
+
+        if (hasTermsOfUse()) {
+            terms.setTermsOfUse(this.getTermsOfUse());
+            if(terms.getLicense()!=null) {
+                terms.setLicense(null);
+            }
+            if (hasConfidentialityDeclaration()) {
+                terms.setConfidentialityDeclaration(this.getConfidentialityDeclaration());
+            }
+            if (hasSpecialPermissions()) {
+                terms.setSpecialPermissions(this.getSpecialPermissions());
+            }
+            if (hasRestrictions()) {
+                terms.setRestrictions(this.getRestrictions());
+            }
+            if (hasCitationRequirements()) {
+                terms.setCitationRequirements(this.getCitationRequirements());
+            }
+            if (hasDepositorRequirements()) {
+                terms.setDepositorRequirements(this.getDepositorRequirements());
+            }
+            if (hasConditions()) {
+                terms.setConditions(this.getConditions());
+            }
+            if (hasDisclaimer()) {
+                terms.setDisclaimer(this.getDisclaimer());
+            }
+            // TODO compare with existing
+        } else {
+            if (terms.getLicense()!=null) {
+                var sameName = hasLicenseName() && terms.getLicense().getName() != null && terms.getLicense().getName().equals(this.getLicenseName());
+                var sameUri = hasLicenseUri() && terms.getLicense().getUri() != null && terms.getLicense().getUri().toString().equals(this.getLicenseUri());
+                if(sameName && sameUri) {
+                    return;
+                }
+                if(!hasLicenseUri() && sameName) {
+                    return;
+                }
+                if(!hasLicenseName() && sameUri){
+                    return;
+                }
+            }
+            terms.setLicense(new License());
+            terms.getLicense().setName(licenseName);
+            try {
+                terms.getLicense().setUri(new URI(licenseUri));
+                // TODO look for a reusable license on other files
+            }
+            catch (URISyntaxException e) {
+                throw new TermsOfUseOrLicenseException("invalid license URI "+licenseUri, e);
+            }
+        }
+    }
 
     /**
      *  Replace Categories in the DataFile.
@@ -912,5 +978,4 @@ public class OptionalFileParams {
         }                
         
     }
-
 }

@@ -13,6 +13,7 @@ import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
 import edu.harvard.iq.dataverse.datasetutility.DataFileTagException;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
+import edu.harvard.iq.dataverse.datasetutility.TermsOfUseOrLicenseException;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -540,11 +541,14 @@ public class Files extends AbstractApiBean {
                     return error(BAD_REQUEST, BundleUtil.getStringFromBundle("files.api.metadata.update.duplicateFile", Arrays.asList(pathPlusFilename)));
                 }
 
-                optionalFileParams.addOptionalParams(upFmd);
+                if (optionalFileParams != null) {
+                        optionalFileParams.addOptionalParams(upFmd, null);
+                }
 
                 Dataset upDS = execCommand(new UpdateDatasetVersionCommand(upFmd.getDataFile().getOwner(), req));
 
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
                 logger.log(Level.WARNING, "Dataset publication finalization: exception while exporting:{0}", e);
                 return error(Response.Status.INTERNAL_SERVER_ERROR, "Error adding metadata to DataFile: " + e);
             }
