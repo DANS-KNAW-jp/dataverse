@@ -5257,13 +5257,16 @@ public class Datasets extends AbstractApiBean {
                 }
 
                 // Apply optional params
-                try {
-                    optionalFileParams.addOptionalParams(fmd, dataset);
-                    // TODO maybe look for new license
-                } catch (TermsOfUseOrLicenseException ex) {
-                    // TODO should exception extend JsonException?
-                    logger.log(Level.WARNING, "Dataset metadata update: exception while parsing JSON: {0}", ex);
-                    return error(BAD_REQUEST, BundleUtil.getStringFromBundle("file.addreplace.error.parsing"));
+                optionalFileParams.addOptionalParams(fmd, dataset);
+                if (fmd.getTermsOfUseOrLicense() != null) {
+                    var license = fmd.getTermsOfUseOrLicense().getLicense();
+                    if (license != null && (license.getId() == null || license.getId() == 0L)) {
+                        var nameOrURI = license.getName() != null ? license.getName() : license.getUri().toString();
+                        var resolvedLicense = this.licenseSvc.getByNameOrUri(nameOrURI);
+                        if (resolvedLicense != null) {
+                            fmd.getTermsOfUseOrLicense().setLicense(resolvedLicense);
+                        }
+                    }
                 }
 
                 // Store updated FileMetadata
@@ -5283,7 +5286,7 @@ public class Datasets extends AbstractApiBean {
         } catch (JsonException ex) {
             logger.log(Level.WARNING, "Dataset metadata update: exception while parsing JSON: {0}", ex);
             return error(BAD_REQUEST, BundleUtil.getStringFromBundle("file.addreplace.error.parsing"));
-        } catch (DataFileTagException de) {
+        } catch (DataFileTagException | TermsOfUseOrLicenseException de) {
             return error(BAD_REQUEST, de.getMessage());
         }catch (Exception e) {
             logger.log(Level.WARNING, "Dataset metadata update: exception while processing:{0}", e);
