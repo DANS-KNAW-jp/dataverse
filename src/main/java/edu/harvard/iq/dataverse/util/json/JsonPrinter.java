@@ -737,24 +737,14 @@ public class JsonPrinter {
         return bld;
     }
 
-    public static JsonArrayBuilder jsonAdditionalLicenses(Collection<FileMetadata> fmds) {
+    public static JsonArrayBuilder jsonAdditionalLicenses(List<FileMetadata> fmds) {
         JsonArrayBuilder jsonLicences = JsonUtil.createArrayBuilder();
-        // TODO using Dataset.getAdditionalTermsOfUseAndLicenses broke a test
-        Set<Long> seenLicenseIds = new HashSet<>();
-        fmds.stream()
-            .map(FileMetadata::getTermsOfUseOrLicense)
-            .filter(Objects::nonNull)
-            .forEach(terms -> {
-                License license = terms.getLicense();
-                Long licenseId = (license != null) ? license.getId() : null;
-                seenLicenseIds.add(licenseId == null ? -1L : licenseId);
-                jsonLicences.add(JsonPrinter.json(terms));
-            });
-        if (seenLicenseIds.isEmpty()) {
+        var additionalTerms = Dataset.getAdditionalTermsOfUseAndLicenses(fmds);
+        if(additionalTerms.size() == 0) {
             return null;
-        } else {
-            return jsonLicences;
         }
+        additionalTerms.forEach(terms -> jsonLicences.add(JsonPrinter.json(terms)));
+        return jsonLicences;
     }
     private static JsonObjectBuilder json(TermsOfUseOrLicense termsOfUseOrLicense) {
         var listBuilder = jsonObjectBuilder();

@@ -895,7 +895,10 @@ public class JsonParser {
                 fileMetadata.setDescription(description);
                 fileMetadata.setDatasetVersion(dsv);
 
-                fileMetadata.setTermsOfUseOrLicense(parseTermsOfUseOrLicense(filemetadataJson));
+                var termsOfUseOrLicense = parseTermsOfUseOrLicense(filemetadataJson);
+                if(termsOfUseOrLicense.getLicense()!=null || termsOfUseOrLicense.getTermsOfUse()!=null) {
+                    fileMetadata.setTermsOfUseOrLicense(termsOfUseOrLicense);
+                }
                 if ( filemetadataJson.containsKey("dataFile") ) {
                     DataFile dataFile = parseDataFile(filemetadataJson.getJsonObject("dataFile"));
                     dataFile.getFileMetadatas().add(fileMetadata);

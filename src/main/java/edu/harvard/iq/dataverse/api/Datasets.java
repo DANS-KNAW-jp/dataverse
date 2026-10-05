@@ -5257,7 +5257,7 @@ public class Datasets extends AbstractApiBean {
                 }
 
                 // Apply optional params
-                optionalFileParams.addOptionalParams(fmd, dataset);
+                optionalFileParams.addOptionalParams(fmd, dataset.getLatestVersion().getFileMetadatas());
                 if (fmd.getTermsOfUseOrLicense() != null) {
                     var license = fmd.getTermsOfUseOrLicense().getLicense();
                     if (license != null && (license.getId() == null || license.getId() == 0L)) {

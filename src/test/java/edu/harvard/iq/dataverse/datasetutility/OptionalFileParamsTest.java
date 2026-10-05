@@ -14,9 +14,11 @@ import edu.harvard.iq.dataverse.FileMetadata;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -257,6 +259,24 @@ public class OptionalFileParamsTest {
         msg("-------------------------------");
         msg(s);
         msg("-------------------------------");
+    }
+
+    @Test
+    public void testAddOptionalParams_notUniqueTermsOfUse(){
+        var fm = new FileMetadata();
+        fm.setDataFile(new DataFile());
+
+        var existingTerms = new TermsOfUseOrLicense();
+        existingTerms.setTermsOfUse("existing termsOfUse");
+        var list = List.of(new FileMetadata());
+        list.getFirst().setTermsOfUseOrLicense(existingTerms);
+
+        var params = new OptionalFileParams();
+        params.setTermsOfUse("new termsOfUse");
+
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list))
+            .isInstanceOf(TermsOfUseOrLicenseException.class)
+            .hasMessage("The dataset has a file with other terms of use.");
     }
 }
 

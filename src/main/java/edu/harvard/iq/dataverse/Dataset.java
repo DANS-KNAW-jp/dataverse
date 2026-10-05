@@ -1027,26 +1027,41 @@ public class Dataset extends DvObjectContainer {
         return Dataset.TARGET_URL;
     }
 
-    public Set<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses() {
+    public List<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses() {
 
-        if(getLatestVersion() == null) return new HashSet<>();
+        if(getLatestVersion() == null) return new ArrayList<>();
         var fileMetadatas = this.getLatestVersion().getFileMetadatas();
-        if(fileMetadatas == null) return new HashSet<>();
+        if(fileMetadatas == null) return new ArrayList<>();
 
         return getAdditionalTermsOfUseAndLicenses(fileMetadatas);
     }
 
-    static public Set<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses(List<FileMetadata> fileMetadatas) {
-        Set<TermsOfUseOrLicense> set = new HashSet<>();
+    static public List<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses(List<FileMetadata> fileMetadatas) {
+        var unique = new java.util.LinkedHashMap<String, TermsOfUseOrLicense>();
+
         fileMetadatas.stream()
             .map(FileMetadata::getTermsOfUseOrLicense)
             .forEach(terms -> {
-                if (terms!=null && (terms.getLicense()!=null || !StringUtil.nonEmpty(terms.getTermsOfUse()))) {
-                    var copy = terms.copyTermsOfUseOrLicense();
-                    copy.setId(null);
-                    set.add(copy);
+                if (terms != null && (terms.getLicense() != null || StringUtil.nonEmpty(terms.getTermsOfUse()))) {
+                    unique.putIfAbsent(key(terms), terms);
                 }
             });
-        return set;
+
+        return new ArrayList<>(unique.values());
+    }
+
+    private static String key(TermsOfUseOrLicense t) {
+        var joined = String.join("||",
+            t.getTermsOfUse(),
+            t.getConfidentialityDeclaration(),
+            t.getSpecialPermissions(),
+            t.getRestrictions(),
+            t.getCitationRequirements(),
+            t.getDepositorRequirements(),
+            t.getConditions(),
+            t.getDisclaimer(),
+            (t.getLicense() == null ? "" : t.getLicense().getName()+t.getLicense().getUri())
+        );
+        return joined;
     }
 }

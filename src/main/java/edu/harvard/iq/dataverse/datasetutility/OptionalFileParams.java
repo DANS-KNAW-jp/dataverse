@@ -14,20 +14,19 @@ import com.google.gson.reflect.TypeToken;
 import edu.harvard.iq.dataverse.DataFile;
 import edu.harvard.iq.dataverse.DataFile.ChecksumType;
 import edu.harvard.iq.dataverse.DataFileTag;
-import edu.harvard.iq.dataverse.Dataset;
 import edu.harvard.iq.dataverse.FileMetadata;
 import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
 import edu.harvard.iq.dataverse.api.Util;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.license.License;
 import edu.harvard.iq.dataverse.util.BundleUtil;
+import edu.harvard.iq.dataverse.util.StringUtil;
 
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.logging.Logger;
 
 /**
@@ -759,17 +758,17 @@ public class OptionalFileParams {
      * 
      * Note that this call may have issues seeing fileMetadata generated before it by Dataset.getEditVersion()
      */
-    public void addOptionalParams(DataFile df) throws DataFileTagException, TermsOfUseOrLicenseException {
+    public void addOptionalParams(DataFile df, List<FileMetadata> fileMetadataList) throws DataFileTagException, TermsOfUseOrLicenseException {
         if (df == null){            
             throw new NullPointerException("The datafile cannot be null!");
         }
         
         FileMetadata fm = df.getFileMetadata();
         
-        addOptionalParams(fm, null);
+        addOptionalParams(fm, fileMetadataList);
     }
     
-    public void addOptionalParams(FileMetadata fm, Dataset dataset) throws DataFileTagException, TermsOfUseOrLicenseException {
+    public void addOptionalParams(FileMetadata fm, List<FileMetadata> fileMetadataList) throws DataFileTagException, TermsOfUseOrLicenseException {
         
         // ---------------------------
         // Add description
@@ -799,7 +798,7 @@ public class OptionalFileParams {
             fm.setProvFreeForm(this.getProvFreeform());
         }
         
-        replaceTermOfUseOrLicense(fm, dataset);
+        replaceTermsOfUseOrLicense(fm, fileMetadataList);
         replaceCategoriesInDataFile(fm);
        
 
@@ -810,7 +809,7 @@ public class OptionalFileParams {
        
     }
 
-    private void replaceTermOfUseOrLicense(FileMetadata fm, Dataset dataset) throws TermsOfUseOrLicenseException {
+    private void replaceTermsOfUseOrLicense(FileMetadata fm, List<FileMetadata> fileMetadataList) throws TermsOfUseOrLicenseException {
 
         if (fm == null) {
             throw new NullPointerException("The fileMetadata cannot be null!");
@@ -831,8 +830,7 @@ public class OptionalFileParams {
         }
         var terms = fm.getTermsOfUseOrLicense();
 
-        if(dataset == null) throw new TermsOfUseOrLicenseException("Terms of use or license is not implemented.");
-        var otherThermsOfUseOrLicenses = dataset.getAdditionalTermsOfUseAndLicenses();
+        if(fileMetadataList == null) throw new TermsOfUseOrLicenseException("Terms of use or license is not implemented.");
 
         if (hasTermsOfUse()) {
             terms.setTermsOfUse(this.getTermsOfUse());
@@ -860,7 +858,14 @@ public class OptionalFileParams {
             if (hasDisclaimer()) {
                 terms.setDisclaimer(this.getDisclaimer());
             }
-            // TODO compare with existing
+            for (var fileMetadata : fileMetadataList) {
+                var termsOnOtherFile = fileMetadata.getTermsOfUseOrLicense();
+                if (termsOnOtherFile != null && !StringUtil.isEmpty(termsOnOtherFile.getTermsOfUse())) {
+                    if(!termsOnOtherFile.equalsIgnoringIds(terms)) {
+                        throw new TermsOfUseOrLicenseException("The dataset has a file with other terms of use.");
+                    }
+                }
+            }
         } else {
             if (terms.getLicense()!=null) {
                 var sameName = hasLicenseName() && terms.getLicense().getName() != null && terms.getLicense().getName().equals(this.getLicenseName());
@@ -879,7 +884,7 @@ public class OptionalFileParams {
             terms.getLicense().setName(licenseName);
             try {
                 terms.getLicense().setUri(new URI(licenseUri));
-                // TODO look for a reusable license on other files
+                // potential optimization look for a reusable license on other files
             }
             catch (URISyntaxException e) {
                 throw new TermsOfUseOrLicenseException("invalid license URI "+licenseUri, e);

@@ -1560,7 +1560,7 @@ public class AddReplaceFileHelper{
         for (DataFile df : finalFileList){
             try {
                 try {
-                    optionalFileParams.addOptionalParams(df);
+                    optionalFileParams.addOptionalParams(df, dataset.getLatestVersion().getFileMetadatas());
                 }
                 catch (TermsOfUseOrLicenseException e) {
                     throw new RuntimeException(e);
