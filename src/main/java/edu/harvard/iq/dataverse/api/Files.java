@@ -13,7 +13,6 @@ import edu.harvard.iq.dataverse.datasetutility.AddReplaceFileHelper;
 import edu.harvard.iq.dataverse.datasetutility.DataFileTagException;
 import edu.harvard.iq.dataverse.datasetutility.NoFilesException;
 import edu.harvard.iq.dataverse.datasetutility.OptionalFileParams;
-import edu.harvard.iq.dataverse.datasetutility.TermsOfUseOrLicenseException;
 import edu.harvard.iq.dataverse.engine.command.Command;
 import edu.harvard.iq.dataverse.engine.command.DataverseRequest;
 import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
@@ -310,6 +309,7 @@ public class Files extends AbstractApiBean {
                                                 this.fileService,
                                                 this.permissionSvc,
                                                 this.commandEngine,
+                                                this.licenseSvc,
                                                 this.systemConfig);
 
         // (5) Run "runReplaceFileByDatasetId"
@@ -542,7 +542,7 @@ public class Files extends AbstractApiBean {
                 }
 
                 if (optionalFileParams != null) {
-                        optionalFileParams.addOptionalParams(upFmd, null);
+                        optionalFileParams.addOptionalParams(upFmd, null, null);
                 }
 
                 Dataset upDS = execCommand(new UpdateDatasetVersionCommand(upFmd.getDataFile().getOwner(), req));

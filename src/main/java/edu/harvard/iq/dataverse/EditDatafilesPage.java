@@ -649,6 +649,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                                                 datafileService,
                                                 permissionService,
                                                 commandEngine,
+                                                licenseServiceBean,
                                                 systemConfig);
                         
             fileReplacePageHelper = new FileReplacePageHelper(addReplaceFileHelper,

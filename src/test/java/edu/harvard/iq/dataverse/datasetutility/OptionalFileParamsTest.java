@@ -274,7 +274,7 @@ public class OptionalFileParamsTest {
         var params = new OptionalFileParams();
         params.setTermsOfUse("new termsOfUse");
 
-        assertThatThrownBy(() -> params.addOptionalParams(fm, list))
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list, null))
             .isInstanceOf(TermsOfUseOrLicenseException.class)
             .hasMessage("The dataset has a file with other terms of use.");
     }

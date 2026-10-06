@@ -19,6 +19,7 @@ import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
 import edu.harvard.iq.dataverse.api.Util;
 import edu.harvard.iq.dataverse.dataaccess.DataAccess;
 import edu.harvard.iq.dataverse.license.License;
+import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
@@ -123,14 +124,12 @@ public class OptionalFileParams {
     public static final String CHECKSUM_OBJECT_NAME = "checksum";
     public static final String CHECKSUM_OBJECT_TYPE = "@type";
     public static final String CHECKSUM_OBJECT_VALUE = "@value";
-    private boolean checkUniqueTermsOfUse;
-    private boolean lookupLicense;
 
     public OptionalFileParams() {
     }
     
     public OptionalFileParams(String jsonData) throws DataFileTagException{
-        
+
         if (jsonData != null){
             loadParamsFromJson(jsonData);
         }
@@ -758,18 +757,20 @@ public class OptionalFileParams {
      * 
      * Note that this call may have issues seeing fileMetadata generated before it by Dataset.getEditVersion()
      */
-    public void addOptionalParams(DataFile df, List<FileMetadata> fileMetadataList) throws DataFileTagException, TermsOfUseOrLicenseException {
+    public void addOptionalParams(DataFile df, List<FileMetadata> fileMetadataList, LicenseServiceBean licenseService) throws DataFileTagException, TermsOfUseOrLicenseException {
+        // TODO move new arguments to the DataFile constructor?
         if (df == null){            
             throw new NullPointerException("The datafile cannot be null!");
         }
         
         FileMetadata fm = df.getFileMetadata();
-        
-        addOptionalParams(fm, fileMetadataList);
+
+        addOptionalParams(fm, fileMetadataList, licenseService);
     }
     
-    public void addOptionalParams(FileMetadata fm, List<FileMetadata> fileMetadataList) throws DataFileTagException, TermsOfUseOrLicenseException {
-        
+    public void addOptionalParams(FileMetadata fm, List<FileMetadata> fileMetadataList, LicenseServiceBean licenseServiceBean) throws DataFileTagException, TermsOfUseOrLicenseException {
+        // TODO move new arguments to new variant for the String constructor?
+
         // ---------------------------
         // Add description
         // ---------------------------
@@ -798,7 +799,7 @@ public class OptionalFileParams {
             fm.setProvFreeForm(this.getProvFreeform());
         }
         
-        replaceTermsOfUseOrLicense(fm, fileMetadataList);
+        replaceTermsOfUseOrLicense(fm, fileMetadataList, licenseServiceBean);
         replaceCategoriesInDataFile(fm);
        
 
@@ -809,7 +810,7 @@ public class OptionalFileParams {
        
     }
 
-    private void replaceTermsOfUseOrLicense(FileMetadata fm, List<FileMetadata> fileMetadataList) throws TermsOfUseOrLicenseException {
+    private void replaceTermsOfUseOrLicense(FileMetadata fm, List<FileMetadata> fileMetadataList, LicenseServiceBean licenseServiceBean) throws TermsOfUseOrLicenseException {
 
         if (fm == null) {
             throw new NullPointerException("The fileMetadata cannot be null!");
@@ -830,7 +831,9 @@ public class OptionalFileParams {
         }
         var terms = fm.getTermsOfUseOrLicense();
 
-        if(fileMetadataList == null) throw new TermsOfUseOrLicenseException("Terms of use or license is not implemented.");
+        if(fileMetadataList == null || licenseServiceBean == null) {
+            throw new TermsOfUseOrLicenseException("Terms of use or license is not implemented.");
+        }
 
         if (hasTermsOfUse()) {
             terms.setTermsOfUse(this.getTermsOfUse());
@@ -880,14 +883,13 @@ public class OptionalFileParams {
                     return;
                 }
             }
-            terms.setLicense(new License());
-            terms.getLicense().setName(licenseName);
-            try {
-                terms.getLicense().setUri(new URI(licenseUri));
-                // potential optimization look for a reusable license on other files
-            }
-            catch (URISyntaxException e) {
-                throw new TermsOfUseOrLicenseException("invalid license URI "+licenseUri, e);
+            // potential optimization look for a reusable license on other files
+            var nameOrURI = this.licenseName != null ? this.licenseName : this.licenseUri;
+            var resolvedLicense = licenseServiceBean.getByNameOrUri(nameOrURI);
+            if (resolvedLicense == null) {
+                throw new TermsOfUseOrLicenseException("The license with name or URI " + nameOrURI + " does not exist.");
+            } else {
+                terms.setLicense(resolvedLicense);
             }
         }
     }

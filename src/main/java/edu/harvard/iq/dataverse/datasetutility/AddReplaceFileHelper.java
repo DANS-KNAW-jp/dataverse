@@ -26,6 +26,7 @@ import edu.harvard.iq.dataverse.engine.command.exception.CommandException;
 import edu.harvard.iq.dataverse.engine.command.impl.RestrictFileCommand;
 import edu.harvard.iq.dataverse.engine.command.impl.UpdateDatasetVersionCommand;
 import edu.harvard.iq.dataverse.ingest.IngestServiceBean;
+import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 import edu.harvard.iq.dataverse.util.SystemConfig;
 import edu.harvard.iq.dataverse.util.file.CreateDataFileResult;
@@ -124,6 +125,7 @@ public class AddReplaceFileHelper{
     private DatasetServiceBean datasetService;
     private DataFileServiceBean fileService;        
     private PermissionServiceBean permissionService;
+    private final LicenseServiceBean licenseService;
     private EjbDataverseEngine commandEngine;
     private SystemConfig systemConfig;
     // -----------------------------------
@@ -253,7 +255,9 @@ public class AddReplaceFileHelper{
                             DataFileServiceBean fileService,
                             PermissionServiceBean permissionService,
                             EjbDataverseEngine commandEngine,
+                            LicenseServiceBean licenseService,
                             SystemConfig systemConfig){
+        this.licenseService = licenseService;
 
         // ---------------------------------
         // make sure DataverseRequest isn't null and has a user
@@ -1560,7 +1564,7 @@ public class AddReplaceFileHelper{
         for (DataFile df : finalFileList){
             try {
                 try {
-                    optionalFileParams.addOptionalParams(df, dataset.getLatestVersion().getFileMetadatas());
+                    optionalFileParams.addOptionalParams(df, dataset.getLatestVersion().getFileMetadatas(), licenseService);
                 }
                 catch (TermsOfUseOrLicenseException e) {
                     throw new RuntimeException(e);

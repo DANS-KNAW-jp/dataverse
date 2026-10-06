@@ -3355,6 +3355,7 @@ public class Datasets extends AbstractApiBean {
                 fileService,
                 permissionSvc,
                 commandEngine,
+                licenseSvc,
                 systemConfig);
 
 
@@ -5048,6 +5049,7 @@ public class Datasets extends AbstractApiBean {
                 this.fileService,
                 this.permissionSvc,
                 this.commandEngine,
+                this.licenseSvc,
                 this.systemConfig
         );
 
@@ -5125,6 +5127,7 @@ public class Datasets extends AbstractApiBean {
                 this.fileService,
                 this.permissionSvc,
                 this.commandEngine,
+                this.licenseSvc,
                 this.systemConfig
         );
 
@@ -5257,17 +5260,7 @@ public class Datasets extends AbstractApiBean {
                 }
 
                 // Apply optional params
-                optionalFileParams.addOptionalParams(fmd, dataset.getLatestVersion().getFileMetadatas());
-                if (fmd.getTermsOfUseOrLicense() != null) {
-                    var license = fmd.getTermsOfUseOrLicense().getLicense();
-                    if (license != null && (license.getId() == null || license.getId() == 0L)) {
-                        var nameOrURI = license.getName() != null ? license.getName() : license.getUri().toString();
-                        var resolvedLicense = this.licenseSvc.getByNameOrUri(nameOrURI);
-                        if (resolvedLicense != null) {
-                            fmd.getTermsOfUseOrLicense().setLicense(resolvedLicense);
-                        }
-                    }
-                }
+                optionalFileParams.addOptionalParams(fmd, dataset.getLatestVersion().getFileMetadatas(), licenseSvc);
 
                 // Store updated FileMetadata
                 fileMetadataMap.put(fileId, fmd);
