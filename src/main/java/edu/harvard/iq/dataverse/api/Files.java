@@ -542,7 +542,7 @@ public class Files extends AbstractApiBean {
                 }
 
                 if (optionalFileParams != null) {
-                        optionalFileParams.addOptionalParams(upFmd, null, null);
+                    optionalFileParams.addOptionalParams(upFmd, df.getFileMetadata().getDatasetVersion().getFileMetadatas(), this.licenseSvc);
                 }
 
                 Dataset upDS = execCommand(new UpdateDatasetVersionCommand(upFmd.getDataFile().getOwner(), req));

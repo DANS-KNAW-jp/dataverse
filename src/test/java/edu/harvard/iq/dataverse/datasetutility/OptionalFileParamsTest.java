@@ -15,11 +15,13 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
+import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 /**
  * 
@@ -274,7 +276,7 @@ public class OptionalFileParamsTest {
         var params = new OptionalFileParams();
         params.setTermsOfUse("new termsOfUse");
 
-        assertThatThrownBy(() -> params.addOptionalParams(fm, list, null))
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list, mock(LicenseServiceBean.class)))
             .isInstanceOf(TermsOfUseOrLicenseException.class)
             .hasMessage("The dataset has a file with other terms of use.");
     }
