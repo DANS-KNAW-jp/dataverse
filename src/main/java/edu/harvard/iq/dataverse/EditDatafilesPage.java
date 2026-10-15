@@ -850,7 +850,7 @@ public class EditDatafilesPage implements java.io.Serializable {
                 hasValidTermsOfAccess = true;
                 return hasValidTermsOfAccess;
             } else {
-                hasValidTermsOfAccess = TermsOfAccessValidator.isTOAValid(workingVersion.getTermsOfAccess(), null);
+                hasValidTermsOfAccess = TermsOfAccessValidator.isTOUAValid(workingVersion.getTermsOfAccess(), null);
                 return hasValidTermsOfAccess;
             }
         }
