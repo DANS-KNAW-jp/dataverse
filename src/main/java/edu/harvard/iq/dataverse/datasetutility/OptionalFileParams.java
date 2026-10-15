@@ -24,8 +24,6 @@ import edu.harvard.iq.dataverse.util.BundleUtil;
 import edu.harvard.iq.dataverse.util.StringUtil;
 
 import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -516,91 +514,9 @@ public class OptionalFileParams {
 
             this.provFreeForm = jsonObj.get(PROVENANCE_FREEFORM_ATTR_NAME).getAsString();
         }
-        
-        // -------------------------------
-        // get termsOfUse as string
-        // -------------------------------
-        if ((jsonObj.has(TERMS_OF_USE_ATTR_NAME)) && (!jsonObj.get(TERMS_OF_USE_ATTR_NAME).isJsonNull())){
 
-            this.termsOfUse = jsonObj.get(TERMS_OF_USE_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get confidentialityDeclaration as string
-        // -------------------------------
-        if ((jsonObj.has(CONFIDENTIALITY_DECLARATION_ATTR_NAME)) && (!jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).isJsonNull())){
-
-            this.confidentialityDeclaration = jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get specialPermissions as string
-        // -------------------------------
-        if ((jsonObj.has(SPECIAL_PERMISSIONS_ATTR_NAME)) && (!jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).isJsonNull())){
-
-            this.specialPermissions = jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get restrictions as string
-        // -------------------------------
-        if ((jsonObj.has(RESTRICTIONS_ATTR_NAME)) && (!jsonObj.get(RESTRICTIONS_ATTR_NAME).isJsonNull())){
-
-            this.restrictions = jsonObj.get(RESTRICTIONS_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get citationRequirements as string
-        // -------------------------------
-        if ((jsonObj.has(CITATION_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).isJsonNull())){
-
-            this.citationRequirements = jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get depositorRequirements as string
-        // -------------------------------
-        if ((jsonObj.has(DEPOSITOR_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).isJsonNull())){
-
-            this.depositorRequirements = jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get conditions as string
-        // -------------------------------
-        if ((jsonObj.has(CONDITIONS_ATTR_NAME)) && (!jsonObj.get(CONDITIONS_ATTR_NAME).isJsonNull())){
-
-            this.conditions = jsonObj.get(CONDITIONS_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get disclaimer as string
-        // -------------------------------
-        if ((jsonObj.has(DISCLAIMER_ATTR_NAME)) && (!jsonObj.get(DISCLAIMER_ATTR_NAME).isJsonNull())){
-
-            this.disclaimer = jsonObj.get(DISCLAIMER_ATTR_NAME).getAsString();
-        }
-
-        // -------------------------------
-        // get license object
-        // Note: This stores license info from JSON but the actual License entity
-        // should be looked up from the database using name or URI by the calling code
-        // -------------------------------
-        if ((jsonObj.has(LICENSE_ATTR_NAME)) && (!jsonObj.get(LICENSE_ATTR_NAME).isJsonNull())){
-
-            JsonObject licenseObj = jsonObj.getAsJsonObject(LICENSE_ATTR_NAME);
-
-            // Extract license name for lookup
-            if ((licenseObj.has(LICENSE_NAME_ATTR_NAME)) && (!licenseObj.get(LICENSE_NAME_ATTR_NAME).isJsonNull())){
-                this.licenseName = licenseObj.get(LICENSE_NAME_ATTR_NAME).getAsString();
-                msgt("License name from JSON: " + this.licenseName);
-            }
-
-            // Extract license URI for lookup
-            if ((licenseObj.has(LICENSE_URI_ATTR_NAME)) && (!licenseObj.get(LICENSE_URI_ATTR_NAME).isJsonNull())){
-                this.licenseUri = licenseObj.get(LICENSE_URI_ATTR_NAME).getAsString();
-                msgt("License URI from JSON: " + this.licenseUri);
-            }
+        {
+            loadTermsOfUseOrLicenseFields(jsonObj);
         }
 
         // -------------------------------
@@ -718,7 +634,97 @@ public class OptionalFileParams {
         }
        
     }
-  
+
+    private void loadTermsOfUseOrLicenseFields(JsonObject jsonObj) {
+        // TODO skip unless file specific license are configured
+
+        // -------------------------------
+        // get termsOfUse as string
+        // -------------------------------
+        if ((jsonObj.has(TERMS_OF_USE_ATTR_NAME)) && (!jsonObj.get(TERMS_OF_USE_ATTR_NAME).isJsonNull())) {
+
+            this.termsOfUse = jsonObj.get(TERMS_OF_USE_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get confidentialityDeclaration as string
+        // -------------------------------
+        if ((jsonObj.has(CONFIDENTIALITY_DECLARATION_ATTR_NAME)) && (!jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).isJsonNull())) {
+
+            this.confidentialityDeclaration = jsonObj.get(CONFIDENTIALITY_DECLARATION_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get specialPermissions as string
+        // -------------------------------
+        if ((jsonObj.has(SPECIAL_PERMISSIONS_ATTR_NAME)) && (!jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).isJsonNull())) {
+
+            this.specialPermissions = jsonObj.get(SPECIAL_PERMISSIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get restrictions as string
+        // -------------------------------
+        if ((jsonObj.has(RESTRICTIONS_ATTR_NAME)) && (!jsonObj.get(RESTRICTIONS_ATTR_NAME).isJsonNull())) {
+
+            this.restrictions = jsonObj.get(RESTRICTIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get citationRequirements as string
+        // -------------------------------
+        if ((jsonObj.has(CITATION_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).isJsonNull())) {
+
+            this.citationRequirements = jsonObj.get(CITATION_REQUIREMENTS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get depositorRequirements as string
+        // -------------------------------
+        if ((jsonObj.has(DEPOSITOR_REQUIREMENTS_ATTR_NAME)) && (!jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).isJsonNull())) {
+
+            this.depositorRequirements = jsonObj.get(DEPOSITOR_REQUIREMENTS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get conditions as string
+        // -------------------------------
+        if ((jsonObj.has(CONDITIONS_ATTR_NAME)) && (!jsonObj.get(CONDITIONS_ATTR_NAME).isJsonNull())) {
+
+            this.conditions = jsonObj.get(CONDITIONS_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get disclaimer as string
+        // -------------------------------
+        if ((jsonObj.has(DISCLAIMER_ATTR_NAME)) && (!jsonObj.get(DISCLAIMER_ATTR_NAME).isJsonNull())) {
+
+            this.disclaimer = jsonObj.get(DISCLAIMER_ATTR_NAME).getAsString();
+        }
+
+        // -------------------------------
+        // get license object
+        // Note: This stores license info from JSON but the actual License entity
+        // should be looked up from the database using name or URI by the calling code
+        // -------------------------------
+        if ((jsonObj.has(LICENSE_ATTR_NAME)) && (!jsonObj.get(LICENSE_ATTR_NAME).isJsonNull())) {
+
+            JsonObject licenseObj = jsonObj.getAsJsonObject(LICENSE_ATTR_NAME);
+
+            // Extract license name for lookup
+            if ((licenseObj.has(LICENSE_NAME_ATTR_NAME)) && (!licenseObj.get(LICENSE_NAME_ATTR_NAME).isJsonNull())) {
+                this.licenseName = licenseObj.get(LICENSE_NAME_ATTR_NAME).getAsString();
+                msgt("License name from JSON: " + this.licenseName);
+            }
+
+            // Extract license URI for lookup
+            if ((licenseObj.has(LICENSE_URI_ATTR_NAME)) && (!licenseObj.get(LICENSE_URI_ATTR_NAME).isJsonNull())) {
+                this.licenseUri = licenseObj.get(LICENSE_URI_ATTR_NAME).getAsString();
+                msgt("License URI from JSON: " + this.licenseUri);
+            }
+        }
+    }
+
     private void addFileDataTags(List<String> potentialTags) throws DataFileTagException{
         
         if (potentialTags == null){
