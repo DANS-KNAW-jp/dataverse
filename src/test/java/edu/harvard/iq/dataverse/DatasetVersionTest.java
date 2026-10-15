@@ -247,6 +247,7 @@ public class DatasetVersionTest {
         fileLicense.setName("DANS Licence");
         fileLicense.setUri(URI.create("https://doi.org/10.17026/fp39-0x58"));
         fileLicense.setIconUrl(URI.create(""));
+        fileLicense.setId(1L);
         fileLicenseTerms.setLicense(fileLicense);
         fileLicenseTerms.setId(1L);
         licensedFile.setTermsOfUseOrLicense(fileLicenseTerms);

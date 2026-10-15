@@ -2160,9 +2160,12 @@ public class DatasetVersion implements Serializable {
             job.add("distribution", fileArray);
         }
 
-        JsonArrayBuilder additionalLicenses = JsonPrinter.jsonAdditionalLicenses(fileMetadatas);
-        if (additionalLicenses != null) {
-            job.add("additionalLicenses", additionalLicenses);
+        var termsList = getAdditionalTermsOfUseAndLicenses();
+        if (termsList != null) {
+            var builder = JsonPrinter.jsonAdditionalLicenses(termsList);
+            if (builder != null) {
+                job.add("additionalLicenses", builder);
+            }
         }
         jsonLd = job.build().toString();
 
@@ -2247,5 +2250,43 @@ public class DatasetVersion implements Serializable {
     public void setHasFiles(Boolean hasFiles) {
         this.hasFiles =  hasFiles;
     }
+
+    public List<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses() {
+        var unique = new java.util.LinkedHashMap<String, TermsOfUseOrLicense>();
+        var datasetTerms = this.getTermsOfUseOrLicense();
+
+        fileMetadatas.stream()
+            .map(FileMetadata::getTermsOfUseOrLicense)
+            .forEach(terms -> {
+                if (terms != null) {
+                    if (terms.getLicense() != null) {
+                        if (!terms.getLicense().equals(datasetTerms.getLicense())) {
+                            unique.putIfAbsent(key(terms), terms);
+                        }
+                    }
+                    else if (!terms.getTermsOfUse().isEmpty() && !terms.equalsIgnoringIds(datasetTerms)) {
+                        unique.putIfAbsent(key(terms), terms);
+                    }
+                }
+            });
+
+        return new ArrayList<>(unique.values());
+    }
+
+    private static String key(TermsOfUseOrLicense t) {
+        var joined = String.join("||",
+            t.getTermsOfUse(),
+            t.getConfidentialityDeclaration(),
+            t.getSpecialPermissions(),
+            t.getRestrictions(),
+            t.getCitationRequirements(),
+            t.getDepositorRequirements(),
+            t.getConditions(),
+            t.getDisclaimer(),
+            (t.getLicense() == null ? "" : t.getLicense().getName()+t.getLicense().getUri())
+        );
+        return joined;
+    }
+
 }
 

@@ -739,17 +739,16 @@ public class JsonPrinter {
         if (includeFiles) {
             bld.add("files", jsonFileMetadatas(dsv.getFileMetadatas(), forExportDataProvider));
         }
-        var licensesBuilder = jsonAdditionalLicenses(dsv.getFileMetadatas());
+        var licensesBuilder = jsonAdditionalLicenses(dsv.getAdditionalTermsOfUseAndLicenses());
         if (licensesBuilder != null) {
             bld.add("additionalLicenses", licensesBuilder);
         }
         return bld;
     }
 
-    public static JsonArrayBuilder jsonAdditionalLicenses(List<FileMetadata> fmds) {
+    public static JsonArrayBuilder jsonAdditionalLicenses(List<TermsOfUseOrLicense> additionalTerms) {
         JsonArrayBuilder jsonLicences = JsonUtil.createArrayBuilder();
-        var additionalTerms = Dataset.getAdditionalTermsOfUseAndLicenses(fmds);
-        if(additionalTerms.size() == 0) {
+        if(additionalTerms.isEmpty()) {
             return null;
         }
         additionalTerms.forEach(terms -> jsonLicences.add(JsonPrinter.json(terms)));

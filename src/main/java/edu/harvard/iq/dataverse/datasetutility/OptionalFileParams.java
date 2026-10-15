@@ -861,6 +861,8 @@ public class OptionalFileParams {
             if (hasDisclaimer()) {
                 terms.setDisclaimer(this.getDisclaimer());
             }
+            // Allow only one set of terms of use per dataset. If a file has terms of use, all other files must have the same terms of use.
+            // TODO check also the term of use at dataset level
             for (var fileMetadata : fileMetadataList) {
                 var termsOnOtherFile = fileMetadata.getTermsOfUseOrLicense();
                 if (termsOnOtherFile != null && !StringUtil.isEmpty(termsOnOtherFile.getTermsOfUse())) {

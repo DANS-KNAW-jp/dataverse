@@ -226,6 +226,7 @@ public class SchemaDotOrgExporterTest {
         fmd.setDescription("README file.");
         TermsOfUseOrLicense fileTerms = new TermsOfUseOrLicense();
         License fileLicense = new License("DANS Licence", "", URI.create("https://doi.org/10.17026/fp39-0x58"), URI.create(""), true, 2l);
+        fileLicense.setId(1l);
         fileTerms.setLicense(fileLicense);
         fmd.setTermsOfUseOrLicense(fileTerms);
         List<FileMetadata> fileMetadatas = new ArrayList<>();

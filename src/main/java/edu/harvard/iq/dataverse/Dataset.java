@@ -1004,42 +1004,4 @@ public class Dataset extends DvObjectContainer {
     public String getTargetUrl() {
         return Dataset.TARGET_URL;
     }
-
-    public List<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses() {
-
-        if(getLatestVersion() == null) return new ArrayList<>();
-        var fileMetadatas = this.getLatestVersion().getFileMetadatas();
-        if(fileMetadatas == null) return new ArrayList<>();
-
-        return getAdditionalTermsOfUseAndLicenses(fileMetadatas);
-    }
-
-    static public List<TermsOfUseOrLicense> getAdditionalTermsOfUseAndLicenses(List<FileMetadata> fileMetadatas) {
-        var unique = new java.util.LinkedHashMap<String, TermsOfUseOrLicense>();
-
-        fileMetadatas.stream()
-            .map(FileMetadata::getTermsOfUseOrLicense)
-            .forEach(terms -> {
-                if (terms != null && (terms.getLicense() != null || StringUtil.nonEmpty(terms.getTermsOfUse()))) {
-                    unique.putIfAbsent(key(terms), terms);
-                }
-            });
-
-        return new ArrayList<>(unique.values());
-    }
-
-    private static String key(TermsOfUseOrLicense t) {
-        var joined = String.join("||",
-            t.getTermsOfUse(),
-            t.getConfidentialityDeclaration(),
-            t.getSpecialPermissions(),
-            t.getRestrictions(),
-            t.getCitationRequirements(),
-            t.getDepositorRequirements(),
-            t.getConditions(),
-            t.getDisclaimer(),
-            (t.getLicense() == null ? "" : t.getLicense().getName()+t.getLicense().getUri())
-        );
-        return joined;
-    }
 }
