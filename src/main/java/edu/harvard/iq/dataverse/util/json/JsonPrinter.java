@@ -739,7 +739,36 @@ public class JsonPrinter {
         if (includeFiles) {
             bld.add("files", jsonFileMetadatas(dsv.getFileMetadatas(), forExportDataProvider));
         }
+        var licensesBuilder = jsonAdditionalLicenses(dsv.getAdditionalTermsOfUseAndLicenses());
+        if (licensesBuilder != null) {
+            bld.add("additionalLicenses", licensesBuilder);
+        }
         return bld;
+    }
+
+    public static JsonArrayBuilder jsonAdditionalLicenses(List<TermsOfUseOrLicense> additionalTerms) {
+        JsonArrayBuilder jsonLicences = JsonUtil.createArrayBuilder();
+        if(additionalTerms.isEmpty()) {
+            return null;
+        }
+        additionalTerms.forEach(terms -> jsonLicences.add(JsonPrinter.json(terms)));
+        return jsonLicences;
+    }
+    private static JsonObjectBuilder json(TermsOfUseOrLicense termsOfUseOrLicense) {
+        var listBuilder = jsonObjectBuilder();
+
+        var license = termsOfUseOrLicense.getLicense();
+        if (license == null) {
+            listBuilder.add("name", "Custom Dataset Terms");
+        }
+        else {
+            var licenseBuilder = jsonObjectBuilder();
+            licenseBuilder.add("name", license.getName())
+                .add("uri", license.getUri().toString())
+                .add("iconUri", license.getIconUrl().toString());
+            listBuilder.add("license", licenseBuilder);
+        }
+        return listBuilder;
     }
 
     public static JsonObjectBuilder jsonDataFileList(List<DataFile> dataFiles){
@@ -1041,6 +1070,25 @@ public class JsonPrinter {
                 .add("datasetVersionId", fmd.getDatasetVersion().getId())
                 .add("categories", getFileCategories(fmd))
                 .add("dataFile", JsonPrinter.json(fmd.getDataFile(), fmd, forExportDataProvider, returnOwners));
+                var terms = fmd.getTermsOfUseOrLicense();
+                if(terms != null){
+                    if(terms.getLicense() == null) {
+                        builder.add("termsOfUse", terms.getTermsOfUse());
+                        builder.add("confidentialityDeclaration", terms.getConfidentialityDeclaration());
+                        builder.add("specialPermissions", terms.getSpecialPermissions());
+                        builder.add("restrictions", terms.getRestrictions());
+                        builder.add("citationRequirements", terms.getCitationRequirements());
+                        builder.add("depositorRequirements", terms.getDepositorRequirements());
+                        builder.add("conditions", terms.getConditions());
+                        builder.add("disclaimer", terms.getDisclaimer());
+                    } else {
+                        builder.add("license", jsonObjectBuilder()
+                                .add("name", terms.getLicense().getName())
+                                .add("uri", terms.getLicense().getUri().toString())
+                                .add("iconUri", terms.getLicense().getIconUrl().toString())
+                        );
+                    }
+                }
 
         if (printDatasetVersion) {
             builder.add("datasetVersion", json(fmd.getDatasetVersion(), false));
