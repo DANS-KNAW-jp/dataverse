@@ -895,7 +895,7 @@ public class OptionalFileParams {
             var nameOrURI = this.licenseName != null ? this.licenseName : this.licenseUri;
             var resolvedLicense = licenseServiceBean.getByNameOrUri(nameOrURI);
             if (resolvedLicense == null) {
-                throw new TermsOfUseOrLicenseException("The license with name or URI " + nameOrURI + " does not exist.");
+                throw new TermsOfUseOrLicenseException("The license with name or URI '" + nameOrURI + "' does not exist.");
             } else {
                 terms.setLicense(resolvedLicense);
             }
