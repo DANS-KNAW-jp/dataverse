@@ -16,6 +16,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
@@ -49,7 +50,6 @@ import jakarta.persistence.NamedQuery;
  * @author skraffmi
  */
 @Entity
-@Table(name = "termsofuseorlicense")
 public class TermsOfUseOrLicense implements Serializable {
     public static final String DEFAULT_NOTERMS = "This dataset is made available without information on how it can be used. You should communicate with the Contact(s) specified before use.";
 
@@ -65,7 +65,7 @@ public class TermsOfUseOrLicense implements Serializable {
         this.id = id;
     }
 
-    @OneToOne(mappedBy = "termsOfUseOrLicense")
+    @OneToOne(mappedBy = "defaultTermsOfUseOrLicense")
     private DatasetVersion datasetVersion;
 
     public DatasetVersion getDatasetVersion() {
@@ -76,8 +76,11 @@ public class TermsOfUseOrLicense implements Serializable {
         this.datasetVersion = datasetVersion;
     }
 
-    @OneToOne(mappedBy = "termsOfUseOrLicense")
+    @OneToOne(mappedBy = "defaultTermsOfUseOrLicense")
     private Template template;
+
+    @OneToMany(mappedBy = "termsOfUseOrLicense")
+    private FileMetadata fileMetadata;
 
     public Template getTemplate() {
         return template;
@@ -91,28 +94,28 @@ public class TermsOfUseOrLicense implements Serializable {
     @JoinColumn(name = "license_id")
     private License license;
 
-    @Column(name = "termsofuse", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String termsOfUse;
 
-    @Column(name = "confidentialitydeclaration", columnDefinition = "TEXT")
+    @Column( columnDefinition = "TEXT")
     private String confidentialityDeclaration;
 
-    @Column(name = "specialpermissions", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String specialPermissions;
 
-    @Column(name = "restrictions", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String restrictions;
 
-    @Column(name = "citationrequirements", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String citationRequirements;
 
-    @Column(name = "depositorrequirements", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String depositorRequirements;
 
-    @Column(name = "conditions", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String conditions;
 
-    @Column(name = "disclaimer", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String disclaimer;
 
     public License getLicense() {
@@ -221,6 +224,14 @@ public class TermsOfUseOrLicense implements Serializable {
             //Enforce restriction that customTerms can't be used with a license
             this.license = null;
         }
+    }
+
+    public FileMetadata getFileMetadata() {
+        return fileMetadata;
+    }
+
+    public void setFileMetadata(FileMetadata fileMetadata) {
+        this.fileMetadata = fileMetadata;
     }
 
     public TermsOfUseOrLicense copyTermsOfUseOrLicense(){

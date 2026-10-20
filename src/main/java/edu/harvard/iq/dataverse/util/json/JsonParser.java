@@ -564,19 +564,8 @@ public class JsonParser {
                 }
             }
 
-            if (license == null) {
-                termsOfUseOrLicense.setLicense(license);
-                termsOfUseOrLicense.setTermsOfUse(obj.getString("termsOfUse", null));
-                termsOfUseOrLicense.setConfidentialityDeclaration(obj.getString("confidentialityDeclaration", null));
-                termsOfUseOrLicense.setSpecialPermissions(obj.getString("specialPermissions", null));
-                termsOfUseOrLicense.setRestrictions(obj.getString("restrictions", null));
-                termsOfUseOrLicense.setCitationRequirements(obj.getString("citationRequirements", null));
-                termsOfUseOrLicense.setDepositorRequirements(obj.getString("depositorRequirements", null));
-                termsOfUseOrLicense.setConditions(obj.getString("conditions", null));
-                termsOfUseOrLicense.setDisclaimer(obj.getString("disclaimer", null));
-            } else {
-                termsOfUseOrLicense.setLicense(license);
-            }
+            termsOfUseOrLicense.setLicense(license);
+
             termsOfAccess.setTermsOfAccess(obj.getString("termsOfAccess", null));
             termsOfAccess.setDataAccessPlace(obj.getString("dataAccessPlace", null));
             termsOfAccess.setOriginalArchive(obj.getString("originalArchive", null));
@@ -589,7 +578,7 @@ public class JsonParser {
             dsv.setTermsOfAccess(termsOfAccess);
             termsOfAccess.setDatasetVersion(dsv);
 
-            dsv.setTermsOfUseOrLicense(termsOfUseOrLicense);
+            dsv.setDefaultTermsOfUseOrLicense(termsOfUseOrLicense);
             termsOfUseOrLicense.setDatasetVersion(dsv);
 
             JsonObject metadataBlocks = obj.getJsonObject("metadataBlocks");

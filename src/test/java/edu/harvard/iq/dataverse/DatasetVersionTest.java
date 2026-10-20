@@ -13,18 +13,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import jakarta.validation.ConstraintViolation;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Disabled;
@@ -118,7 +115,7 @@ public class DatasetVersionTest {
         datasetVersion.setTermsOfAccess(termsOfAccess);
         TermsOfUseOrLicense termsOfUseOrLicense = new TermsOfUseOrLicense();
         termsOfUseOrLicense.setLicense(license);
-        datasetVersion.setTermsOfUseOrLicense(termsOfUseOrLicense);
+        datasetVersion.setDefaultTermsOfUseOrLicense(termsOfUseOrLicense);
         String jsonLd = datasetVersion.getJsonLd();
         logger.fine("jsonLd: " + JsonUtil.prettyPrint(jsonLd));
         JsonObject obj = JsonUtil.getJsonObject(jsonLd);
@@ -170,7 +167,7 @@ public class DatasetVersionTest {
         TermsOfUseOrLicense termsOfUseOrLicense = new TermsOfUseOrLicense();
         termsOfUseOrLicense.setLicense(null);
         termsOfUseOrLicense.setTermsOfUse("Call me maybe");
-        datasetVersion.setTermsOfUseOrLicense(termsOfUseOrLicense);
+        datasetVersion.setDefaultTermsOfUseOrLicense(termsOfUseOrLicense);
         datasetVersion.setTermsOfAccess(new TermsOfAccess());
 
         String jsonLd = datasetVersion.getJsonLd();
@@ -324,24 +321,5 @@ public class DatasetVersionTest {
         assertThat(termsOfAccess.getValidationMessage()).isEqualTo(expectedMessge);
         assertEquals(1, violations.size());
         assertThat(violations.iterator().next().getMessage()).isEqualTo(expectedMessge);
-    }
-
-    @Test
-    @Disabled("implemented explicitly in webUI  and  datasets/{id}/license")
-    public void testInValidLicense() {
-        var datasetVersion = new DatasetVersion();
-
-        var termsOfUseOrLicense = new TermsOfUseOrLicense();
-        termsOfUseOrLicense.setLicense(null);
-        termsOfUseOrLicense.setTermsOfUse(null);
-        datasetVersion.setTermsOfUseOrLicense(termsOfUseOrLicense);
-        termsOfUseOrLicense.setDatasetVersion(datasetVersion);
-
-        var violations = datasetVersion.validate();
-
-        var expectedByDatasetPageValidateTerms = BundleUtil.getStringFromBundle("dataset.license.custom.blankterms");
-        var expectedByFilePageAndDatasetPageInit = BundleUtil.getStringFromBundle("dataset.message.editMetadata.invalid.TOUA.message");
-        var expectedByAPI = BundleUtil.getStringFromBundle("updateDatasetLicenseCommand.errors.customTermsOfUseNotProvided");
-        assertEquals(1, violations.size());
     }
 }
