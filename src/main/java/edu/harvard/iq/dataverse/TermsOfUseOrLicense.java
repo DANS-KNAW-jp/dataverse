@@ -6,9 +6,11 @@
 package edu.harvard.iq.dataverse;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
 import java.util.Objects;
 
-import edu.harvard.iq.dataverse.util.StringUtil;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,7 +20,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
 import edu.harvard.iq.dataverse.license.License;
@@ -80,7 +81,7 @@ public class TermsOfUseOrLicense implements Serializable {
     private Template template;
 
     @OneToMany(mappedBy = "termsOfUseOrLicense")
-    private FileMetadata fileMetadata;
+    private List<FileMetadata> fileMetadataList = new ArrayList<>();
 
     public Template getTemplate() {
         return template;
@@ -226,14 +227,6 @@ public class TermsOfUseOrLicense implements Serializable {
         }
     }
 
-    public FileMetadata getFileMetadata() {
-        return fileMetadata;
-    }
-
-    public void setFileMetadata(FileMetadata fileMetadata) {
-        this.fileMetadata = fileMetadata;
-    }
-
     public TermsOfUseOrLicense copyTermsOfUseOrLicense(){
 
         TermsOfUseOrLicense retVal = new TermsOfUseOrLicense();
@@ -343,5 +336,12 @@ public class TermsOfUseOrLicense implements Serializable {
         return this.getClass().getCanonicalName() + "[ id=" + id + " ]";
     }
 
+    public List<FileMetadata> getFileMetadataList() {
+        return fileMetadataList;
+    }
+
+    public void setFileMetadataList(List<FileMetadata> fileMetadataList) {
+        this.fileMetadataList = fileMetadataList;
+    }
 }
 
