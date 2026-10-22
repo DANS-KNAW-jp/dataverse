@@ -11,13 +11,20 @@ import edu.harvard.iq.dataverse.DataFileCategory;
 import edu.harvard.iq.dataverse.DataFileTag;
 import edu.harvard.iq.dataverse.FileMetadata;
 
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
+import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 
 /**
  * 
@@ -257,6 +264,59 @@ public class OptionalFileParamsTest {
         msg("-------------------------------");
         msg(s);
         msg("-------------------------------");
+    }
+
+    @Test
+    public void testAddOptionalParams_notUniqueTermsOfUse(){
+        var fm = new FileMetadata();
+        fm.setDataFile(new DataFile());
+
+        var existingTerms = new TermsOfUseOrLicense();
+        existingTerms.setTermsOfUse("existing termsOfUse");
+        var list = List.of(new FileMetadata());
+        list.getFirst().setTermsOfUseOrLicense(existingTerms);
+
+        var params = new OptionalFileParams();
+        params.setTermsOfUse("new termsOfUse");
+
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list, mock(LicenseServiceBean.class)))
+            .isInstanceOf(TermsOfUseOrLicenseException.class)
+            .hasMessage("The dataset has a file with other terms of use.");
+    }
+
+    @Test
+    public void testAddOptionalParams_licenseDoesNotExist() throws URISyntaxException {
+        var fm = new FileMetadata();
+        fm.setDataFile(new DataFile());
+
+        var list = List.of(new FileMetadata());
+        list.getFirst().setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+
+        var params = new OptionalFileParams();
+        params.setLicenseName("Nonexistent License");
+        LicenseServiceBean svcMock = mock(LicenseServiceBean.class);
+        Mockito.when(svcMock.getByNameOrUri(any()))
+            .thenReturn(null);
+
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list, svcMock))
+            .isInstanceOf(TermsOfUseOrLicenseException.class)
+            .hasMessage("The license with name or URI 'Nonexistent License' does not exist.");
+    }
+
+    @Test
+    public void testAddOptionalParams_noLicenseService() throws URISyntaxException {
+        var fm = new FileMetadata();
+        fm.setDataFile(new DataFile());
+
+        var list = List.of(new FileMetadata());
+        list.getFirst().setTermsOfUseOrLicense(new TermsOfUseOrLicense());
+
+        var params = new OptionalFileParams();
+        params.setLicenseName("Nonexistent License");
+
+        assertThatThrownBy(() -> params.addOptionalParams(fm, list, null))
+            .isInstanceOf(TermsOfUseOrLicenseException.class)
+            .hasMessage("Terms of use or license is not implemented.");
     }
 }
 
