@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
@@ -16,7 +18,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -92,28 +94,68 @@ public class TermsOfAccess implements Serializable {
         this.id = id;
     }
     
-    @OneToOne(mappedBy = "termsOfAccess")
-    private DatasetVersion datasetVersion;
+    @OneToMany(mappedBy = "termsOfAccess")
+    private List<DatasetVersion> datasetVersions = new ArrayList<>();
 
+    public List<DatasetVersion> getDatasetVersions() {
+        return datasetVersions;
+    }
+
+    public void setDatasetVersions(List<DatasetVersion> datasetVersions) {
+        this.datasetVersions = datasetVersions;
+    }
+
+    @Transient
     public DatasetVersion getDatasetVersion() {
-        return datasetVersion;
+        return datasetVersions == null || datasetVersions.isEmpty() ? null : datasetVersions.get(0);
     }
 
+    @Transient
     public void setDatasetVersion(DatasetVersion datasetVersion) {
-        this.datasetVersion = datasetVersion;
+        if (datasetVersion == null) {
+            this.datasetVersions = new ArrayList<>();
+            return;
+        }
+        if (this.datasetVersions == null) {
+            this.datasetVersions = new ArrayList<>();
+        }
+        if (!this.datasetVersions.contains(datasetVersion)) {
+            this.datasetVersions.add(datasetVersion);
+        }
+        datasetVersion.setTermsOfAccess(this);
     }
     
-    @OneToOne(mappedBy = "termsOfAccess")
-    private Template template;
+    @OneToMany(mappedBy = "termsOfAccess")
+    private List<Template> templates = new ArrayList<>();
 
+    public List<Template> getTemplates() {
+        return templates;
+    }
+
+    public void setTemplates(List<Template> templates) {
+        this.templates = templates;
+    }
+
+    @Transient
     public Template getTemplate() {
-        return template;
+        return templates == null || templates.isEmpty() ? null : templates.get(0);
     }
 
+    @Transient
     public void setTemplate(Template template) {
-        this.template = template;
+        if (template == null) {
+            this.templates = new ArrayList<>();
+            return;
+        }
+        if (this.templates == null) {
+            this.templates = new ArrayList<>();
+        }
+        if (!this.templates.contains(template)) {
+            this.templates.add(template);
+        }
+        template.setTermsOfAccess(this);
     }
-    
+
 
     @Column(columnDefinition = "TEXT")
     private String termsOfAccess;

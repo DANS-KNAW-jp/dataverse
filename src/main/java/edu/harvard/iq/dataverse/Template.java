@@ -111,7 +111,7 @@ public class Template implements Serializable {
         return DateUtil.formatDate(createTime);
     }
     
-    @OneToOne(cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval=true)
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "termsofaccess_id")
     private TermsOfAccess termsOfAccess;
 
