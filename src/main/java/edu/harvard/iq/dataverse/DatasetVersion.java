@@ -709,7 +709,7 @@ public class DatasetVersion implements Serializable {
             }
             
             if (this.getTermsOfAccess() != null){
-                TermsOfAccess terms = this.getTermsOfAccess().copyTermsOfAccess();
+                TermsOfAccess terms = this.getTermsOfAccess();
                 terms.setDatasetVersion(dsv);
                 dsv.setTermsOfAccess(terms);
             } else {
