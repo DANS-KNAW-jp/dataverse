@@ -138,8 +138,8 @@ public class DatasetVersion implements Serializable {
     @OneToMany(mappedBy = "datasetVersion", cascade = {CascadeType.REMOVE, CascadeType.MERGE, CascadeType.PERSIST})
     @OrderBy("label, id") // this is not our preferred ordering, which is with the AlphaNumericComparator, but does allow the files to be grouped by category; adding id, to avoid ambiguity when there are duplicate filenames. (L.A., 05-2026)
     private List<FileMetadata> fileMetadatas = new ArrayList();
-    
-    @ManyToOne
+
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "termsofaccess_id")
     private TermsOfAccess termsOfAccess;
     
@@ -719,7 +719,7 @@ public class DatasetVersion implements Serializable {
             }
 
             if (this.getDefaultTermsOfUseOrLicense() != null){
-                TermsOfUseOrLicense terms = this.getDefaultTermsOfUseOrLicense().copyTermsOfUseOrLicense();
+                TermsOfUseOrLicense terms = this.getDefaultTermsOfUseOrLicense();
                 terms.setDatasetVersion(dsv);
                 dsv.setDefaultTermsOfUseOrLicense(terms);
             } else {

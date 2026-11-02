@@ -110,7 +110,7 @@ public class Template implements Serializable {
     public String getCreateDate() {
         return DateUtil.formatDate(createTime);
     }
-    
+
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "termsofaccess_id")
     private TermsOfAccess termsOfAccess;
@@ -382,7 +382,7 @@ public class Template implements Serializable {
         
         TermsOfUseOrLicense termsOfUseOrLicense = null;
         if(source.getDefaultTermsOfUseOrLicense() != null){
-            termsOfUseOrLicense = source.getDefaultTermsOfUseOrLicense().copyTermsOfUseOrLicense();
+            termsOfUseOrLicense = source.getDefaultTermsOfUseOrLicense();
         } else {
             termsOfUseOrLicense = new TermsOfUseOrLicense();
            // terms.setLicense(TermsOfUseOrLicense.defaultLicense);
