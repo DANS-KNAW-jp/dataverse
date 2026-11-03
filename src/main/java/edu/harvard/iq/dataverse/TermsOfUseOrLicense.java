@@ -6,8 +6,12 @@
 package edu.harvard.iq.dataverse;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,6 +22,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.persistence.Transient;
 
 import edu.harvard.iq.dataverse.license.License;
@@ -49,6 +57,7 @@ import jakarta.persistence.NamedQuery;
  * @author skraffmi
  */
 @Entity
+@Table(name = "termsofuseorlicense", uniqueConstraints = @UniqueConstraint(name = "uk_termsofuseorlicense_contenthash", columnNames = "contenthash"))
 @ValidateTermsOfUseOrLicense
 public class TermsOfUseOrLicense implements Serializable {
     public static final String DEFAULT_NOTERMS = "This dataset is made available without information on how it can be used. You should communicate with the Contact(s) specified before use.";
@@ -56,6 +65,55 @@ public class TermsOfUseOrLicense implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "contenthash", length = 64, nullable = false)
+    private String contentHash;
+
+    @PrePersist
+    @PreUpdate
+    public void computeContentHash() {
+        this.contentHash = hash(normalizeForHash());
+    }
+
+    public boolean sameContent(TermsOfUseOrLicense other) {
+        return other != null && Objects.equals(this.contentHash, other.contentHash);
+    }
+
+    private String normalizeForHash() {
+        StringBuilder sb = new StringBuilder();
+        appendHashPart(sb, citationRequirements);
+        appendHashPart(sb, conditions);
+        appendHashPart(sb, confidentialityDeclaration);
+        appendHashPart(sb, depositorRequirements);
+        appendHashPart(sb, disclaimer);
+        appendHashPart(sb, restrictions);
+        appendHashPart(sb, specialPermissions);
+        appendHashPart(sb, termsOfUse);
+        appendHashPart(sb, license == null ? "" : String.valueOf(license.getId()));
+        return sb.toString();
+    }
+
+    private void appendHashPart(StringBuilder sb, String value) {
+        if (sb.length() > 0) {
+            sb.append('|');
+        }
+        sb.append(value == null ? "" : value.trim());
+    }
+
+
+    private String hash(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hashBytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 unavailable", e);
+        }
+    }
 
     public Long getId() {
         return id;
@@ -300,4 +358,3 @@ public class TermsOfUseOrLicense implements Serializable {
         this.fileMetadataList = fileMetadataList;
     }
 }
-

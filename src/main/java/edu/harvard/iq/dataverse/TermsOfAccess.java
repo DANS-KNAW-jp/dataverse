@@ -6,14 +6,24 @@
 package edu.harvard.iq.dataverse;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 
 /**
  *
@@ -21,12 +31,60 @@ import jakarta.persistence.Transient;
  * @author skraffmi
  */
 @Entity
+@Table(name = "termsofaccess", uniqueConstraints = @UniqueConstraint(name = "uk_termsofaccess_contenthash", columnNames = "contenthash"))
 @ValidateTermsOfAccess
 public class TermsOfAccess implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "contenthash", length = 64, nullable = false)
+    private String contentHash;
+
+    @PrePersist
+    @PreUpdate
+    public void computeContentHash() {
+        this.contentHash = hash(normalizeForHash());
+    }
+
+    public boolean sameContent(TermsOfAccess other) {
+        return other != null && Objects.equals(this.contentHash, other.contentHash);
+    }
+
+    private String normalizeForHash() {
+        StringBuilder sb = new StringBuilder();
+        appendHashPart(sb, termsOfAccess);
+        appendHashPart(sb, dataAccessPlace);
+        appendHashPart(sb, originalArchive);
+        appendHashPart(sb, availabilityStatus);
+        appendHashPart(sb, contactForAccess);
+        appendHashPart(sb, sizeOfCollection);
+        appendHashPart(sb, studyCompletion);
+        sb.append('|').append(fileAccessRequest);
+        return sb.toString();
+    }
+
+    private void appendHashPart(StringBuilder sb, String value) {
+        if (sb.length() > 0) {
+            sb.append('|');
+        }
+        sb.append(value == null ? "" : value.trim());
+    }
+
+    private String hash(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hashBytes) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 unavailable", e);
+        }
+    }
 
     public Long getId() {
         return id;
@@ -36,28 +94,68 @@ public class TermsOfAccess implements Serializable {
         this.id = id;
     }
     
-    @OneToOne(mappedBy = "termsOfAccess")
-    private DatasetVersion datasetVersion;
+    @OneToMany(mappedBy = "termsOfAccess")
+    private List<DatasetVersion> datasetVersions = new ArrayList<>();
 
+    public List<DatasetVersion> getDatasetVersions() {
+        return datasetVersions;
+    }
+
+    public void setDatasetVersions(List<DatasetVersion> datasetVersions) {
+        this.datasetVersions = datasetVersions;
+    }
+
+    @Transient
     public DatasetVersion getDatasetVersion() {
-        return datasetVersion;
+        return datasetVersions == null || datasetVersions.isEmpty() ? null : datasetVersions.get(0);
     }
 
+    @Transient
     public void setDatasetVersion(DatasetVersion datasetVersion) {
-        this.datasetVersion = datasetVersion;
+        if (datasetVersion == null) {
+            this.datasetVersions = new ArrayList<>();
+            return;
+        }
+        if (this.datasetVersions == null) {
+            this.datasetVersions = new ArrayList<>();
+        }
+        if (!this.datasetVersions.contains(datasetVersion)) {
+            this.datasetVersions.add(datasetVersion);
+        }
+        datasetVersion.setTermsOfAccess(this);
     }
     
-    @OneToOne(mappedBy = "termsOfAccess")
-    private Template template;
+    @OneToMany(mappedBy = "termsOfAccess")
+    private List<Template> templates = new ArrayList<>();
 
+    public List<Template> getTemplates() {
+        return templates;
+    }
+
+    public void setTemplates(List<Template> templates) {
+        this.templates = templates;
+    }
+
+    @Transient
     public Template getTemplate() {
-        return template;
+        return templates == null || templates.isEmpty() ? null : templates.get(0);
     }
 
+    @Transient
     public void setTemplate(Template template) {
-        this.template = template;
+        if (template == null) {
+            this.templates = new ArrayList<>();
+            return;
+        }
+        if (this.templates == null) {
+            this.templates = new ArrayList<>();
+        }
+        if (!this.templates.contains(template)) {
+            this.templates.add(template);
+        }
+        template.setTermsOfAccess(this);
     }
-    
+
 
     @Column(columnDefinition = "TEXT")
     private String termsOfAccess;
