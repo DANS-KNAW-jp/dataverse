@@ -8,6 +8,7 @@ import edu.harvard.iq.dataverse.authorization.RoleAssignee;
 import edu.harvard.iq.dataverse.authorization.users.PrivateUrlUser;
 import edu.harvard.iq.dataverse.dataset.DatasetType;
 import edu.harvard.iq.dataverse.dataset.DatasetTypeServiceBean;
+import edu.harvard.iq.dataverse.dataset.DatasetUtil;
 import edu.harvard.iq.dataverse.dataverse.featured.DataverseFeaturedItem;
 import edu.harvard.iq.dataverse.license.License;
 import edu.harvard.iq.dataverse.license.LicenseServiceBean;
@@ -24,12 +25,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
@@ -105,6 +109,11 @@ public class JsonPrinterTest {
             t.setParentDatasetFieldType(compoundSingleType);
         }
         compoundSingleType.setChildDatasetFieldTypes(childTypes);
+    }
+
+    @AfterEach
+    public void clearFileSpecificLicensesProperty() {
+        System.clearProperty("dataverse.files.terms-of-use-or-license");
     }
 
     @Test
@@ -216,6 +225,125 @@ public class JsonPrinterTest {
         assertThat(jsonObject.getString("depositorRequirements")).isEqualTo("Some depositor requirements");
         assertThat(jsonObject.getString("restrictions")).isEqualTo("Some restrictions");
         assertThat(jsonObject.getString("specialPermissions")).isEqualTo("Some special permissions");
+    }
+
+    @Test
+    public void testGetJsonLdAdditionalLicenses() throws ParseException {
+        Dataset dataset = new Dataset();
+        dataset.setProtocol("doi");
+        dataset.setAuthority("10.5072/FK2");
+        dataset.setIdentifier("LK0D1H");
+        DatasetVersion datasetVersion = new DatasetVersion();
+        datasetVersion.setDataset(dataset);
+        datasetVersion.setVersionState(DatasetVersion.VersionState.RELEASED);
+        datasetVersion.setVersionNumber(1L);
+        datasetVersion.setMinorVersionNumber(0L);
+
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyyMMdd");
+        Date publicationDate = dateFmt.parse("19551105");
+        datasetVersion.setReleaseTime(publicationDate);
+        dataset.setPublicationDate(new Timestamp(publicationDate.getTime()));
+
+        Dataverse dataverse = new Dataverse();
+        dataverse.setName("LibraScholar");
+        dataset.setOwner(dataverse);
+        dataset.setDatasetType(new DatasetType());
+        dataset.getDatasetType().setName("Dataset");
+
+        TermsOfAccess termsOfAccess = new TermsOfAccess();
+        datasetVersion.setTermsOfAccess(termsOfAccess);
+
+        TermsOfUseOrLicense datasetTerms = new TermsOfUseOrLicense();
+        License datasetLicense = new License();
+        datasetLicense.setId(0L);
+        datasetLicense.setName("CC0 1.0");
+        datasetLicense.setUri(URI.create("http://creativecommons.org/publicdomain/zero/1.0/"));
+        datasetLicense.setIconUrl(URI.create("/resources/images/cc0.png"));
+        datasetTerms.setLicense(datasetLicense);
+        datasetTerms.setId(0L);
+        datasetVersion.setDefaultTermsOfUseOrLicense(datasetTerms);
+
+        FileMetadata licensedFile = createFileMetadata("a-license.txt", "Licensed file.", 1L, 1L);
+        TermsOfUseOrLicense fileLicenseTerms = new TermsOfUseOrLicense();
+        License fileLicense = new License();
+        fileLicense.setName("DANS Licence");
+        fileLicense.setUri(URI.create("https://doi.org/10.17026/fp39-0x58"));
+        fileLicense.setIconUrl(URI.create(""));
+        fileLicense.setId(1L);
+        fileLicenseTerms.setLicense(fileLicense);
+        fileLicenseTerms.setId(1L);
+        licensedFile.setTermsOfUseOrLicense(fileLicenseTerms);
+
+        FileMetadata customTermsFile = createFileMetadata("b-custom.txt", "Custom terms file.", 2L, 2L);
+        TermsOfUseOrLicense customTerms = new TermsOfUseOrLicense();
+        customTerms.setTermsOfUse("Custom Dataset Terms");
+        customTerms.setId(2L);
+        customTermsFile.setTermsOfUseOrLicense(customTerms);
+
+        FileMetadata defaultLicenseFile = createFileMetadata("c-default.txt", "file without explicit license.", 3L, 3L);
+
+        datasetVersion.setFileMetadatas(List.of(licensedFile, customTermsFile, defaultLicenseFile));
+        datasetVersion.getFileMetadatas().forEach(fm -> fm.setDatasetVersion(datasetVersion));
+
+        JsonObject expectedCustomTerms = JsonUtil.createObjectBuilder()
+            .add("name", "Custom Dataset Terms").build();
+        JsonObject expectedFileLicense = JsonUtil.createObjectBuilder()
+            .add("license", JsonUtil.createObjectBuilder()
+                .add("name", "DANS Licence")
+                .add("uri", "https://doi.org/10.17026/fp39-0x58")
+                .add("iconUri", ""))
+            .build();
+        JsonObject expectedDefaultLicense = JsonUtil.createObjectBuilder()
+            .add("license", JsonUtil.createObjectBuilder()
+                .add("name", "CC0 1.0")
+                .add("uri", "http://creativecommons.org/publicdomain/zero/1.0/")
+                .add("iconUri", "/resources/images/cc0.png"))
+            .build();
+
+        try (var datasetUtil = Mockito.mockStatic(DatasetUtil.class, invocation ->
+            invocation.getMethod().getName().equals("getLicenseName")
+                ? datasetLicense.getName() : invocation.callRealMethod())) {
+
+            JsonObject apiDatasetExport = JsonPrinter.json(datasetVersion, List.of(), true, false, false, true, true).build();
+
+            assertThat(apiDatasetExport.getJsonArray("additionalLicenses")).containsExactlyInAnyOrder(expectedCustomTerms, expectedFileLicense);
+            var exportedFiles = apiDatasetExport.getJsonArray("files").getValuesAs(JsonObject.class);
+            assertThat(exportedFiles).hasSize(3);
+            assertThat(exportedFiles).anySatisfy(file -> assertThat(file)
+                .containsEntry("label", JsonUtil.createValue("a-license.txt"))
+                .containsAllEntriesOf(expectedFileLicense));
+            assertThat(exportedFiles).anySatisfy(file -> assertThat(file)
+                .containsEntry("label", JsonUtil.createValue("b-custom.txt"))
+                .containsEntry("termsOfUse", JsonUtil.createValue("Custom Dataset Terms")));
+            assertThat(exportedFiles).noneSatisfy(file -> assertThat(file)
+                .containsEntry("label", JsonUtil.createValue("c-default.txt"))
+                .containsAllEntriesOf(expectedDefaultLicense));
+
+            // if the DB contains file specific terms despite the system property being set to false, they should still be exported
+            // the default however is only exported when the system property is set to true
+
+            System.setProperty("dataverse.files.terms-of-use-or-license", "true");
+            apiDatasetExport = JsonPrinter.json(datasetVersion, List.of(), true, false, false, true, true).build();
+            exportedFiles = apiDatasetExport.getJsonArray("files").getValuesAs(JsonObject.class);
+            assertThat(exportedFiles).anySatisfy(file -> assertThat(file)
+                .containsEntry("label", JsonUtil.createValue("c-default.txt"))
+                .containsAllEntriesOf(expectedDefaultLicense));
+
+        }
+    }
+
+    private static FileMetadata createFileMetadata(String label, String description, long id, long size) {
+        FileMetadata fileMetadata = new FileMetadata();
+        fileMetadata.setLabel(label);
+        fileMetadata.setDescription(description);
+        DataFile dataFile = new DataFile();
+        dataFile.setId(id);
+        dataFile.setContentType("text/plain");
+        dataFile.setFilesize(size);
+        dataFile.setFileMetadatas(List.of(fileMetadata));
+        dataFile.setDataTables(Collections.emptyList());
+        fileMetadata.setDataFile(dataFile);
+        return fileMetadata;
     }
 
     @Test

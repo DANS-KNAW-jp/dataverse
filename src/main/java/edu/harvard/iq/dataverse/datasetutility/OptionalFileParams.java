@@ -773,9 +773,8 @@ public class OptionalFileParams {
 
         addOptionalParams(fm, fileMetadataList, licenseService);
     }
-    
+
     public void addOptionalParams(FileMetadata fm, List<FileMetadata> fileMetadataList, LicenseServiceBean licenseServiceBean) throws DataFileTagException, TermsOfUseOrLicenseException {
-        // TODO move new arguments to new variant for the String constructor?
 
         // ---------------------------
         // Add description
@@ -817,6 +816,7 @@ public class OptionalFileParams {
     }
 
     private void replaceTermsOfUseOrLicense(FileMetadata fm, List<FileMetadata> fileMetadataList, LicenseServiceBean licenseServiceBean) throws TermsOfUseOrLicenseException {
+        if (!Boolean.valueOf(System.getProperty("dataverse.files.terms-of-use-or-license", "false"))) return;
 
         if (fm == null) {
             throw new NullPointerException("The fileMetadata cannot be null!");

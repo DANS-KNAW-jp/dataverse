@@ -18,6 +18,7 @@ import java.util.List;
 import edu.harvard.iq.dataverse.TermsOfUseOrLicense;
 import edu.harvard.iq.dataverse.license.LicenseServiceBean;
 import edu.harvard.iq.dataverse.util.BundleUtil;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -34,7 +35,12 @@ public class OptionalFileParamsTest {
     
     public OptionalFileParamsTest() {
     }
-    
+
+    @AfterEach
+    public void clearFileSpecificLicensesProperty() {
+        System.clearProperty("dataverse.files.terms-of-use-or-license");
+    }
+
     /**
      * Good Json Description
      */
@@ -279,6 +285,7 @@ public class OptionalFileParamsTest {
         var params = new OptionalFileParams();
         params.setTermsOfUse("new termsOfUse");
 
+        System.setProperty("dataverse.files.terms-of-use-or-license", "true");
         assertThatThrownBy(() -> params.addOptionalParams(fm, list, mock(LicenseServiceBean.class)))
             .isInstanceOf(TermsOfUseOrLicenseException.class)
             .hasMessage("The dataset has a file with other terms of use.");
@@ -298,6 +305,8 @@ public class OptionalFileParamsTest {
         Mockito.when(svcMock.getByNameOrUri(any()))
             .thenReturn(null);
 
+        System.setProperty("dataverse.files.terms-of-use-or-license", "true");
+
         assertThatThrownBy(() -> params.addOptionalParams(fm, list, svcMock))
             .isInstanceOf(TermsOfUseOrLicenseException.class)
             .hasMessage("The license with name or URI 'Nonexistent License' does not exist.");
@@ -313,6 +322,8 @@ public class OptionalFileParamsTest {
 
         var params = new OptionalFileParams();
         params.setLicenseName("Nonexistent License");
+
+        System.setProperty("dataverse.files.terms-of-use-or-license", "true");
 
         assertThatThrownBy(() -> params.addOptionalParams(fm, list, null))
             .isInstanceOf(TermsOfUseOrLicenseException.class)

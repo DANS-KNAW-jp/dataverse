@@ -2296,6 +2296,7 @@ It returns a list of versions with their metadata, and file list:
 
 The optional ``excludeFiles`` parameter specifies whether the files should be listed in the output. It defaults to ``true``, preserving backward compatibility. (Note that for a dataset with a large number of versions and/or files having the files included can dramatically increase the volume of the output). A separate ``/files`` API can be used for listing the files, or a subset thereof in a given version.
 The additional licenses found on individual files won't be suppressed by this option.
+File specific terms of use or licenses can only be created when JVM setting -Ddataverse.files.terms-of-use-or-license=true. When after reboot, the setting is reset to false, previously created file specific terms of use or licenses will still be visible in the API output, but new ones cannot be created.
 
 The optional ``excludeMetadataBlocks`` parameter specifies whether the metadata blocks should be listed in the output. It defaults to ``false``, preserving backward compatibility. (Note that for a dataset with a large number of versions and/or metadata blocks having the metadata blocks included can dramatically increase the volume of the output).
 
