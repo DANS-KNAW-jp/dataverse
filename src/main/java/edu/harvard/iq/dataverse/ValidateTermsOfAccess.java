@@ -23,7 +23,7 @@ import jakarta.validation.Payload;
 @Documented
 public @interface ValidateTermsOfAccess {
 
-    String message() default "Failed Validation Terms Of Use and Access";
+    String message() default "Failed Validation Terms Of Access";
 
     Class<?>[] groups() default {};
 

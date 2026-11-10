@@ -1207,6 +1207,7 @@ public class GlobusServiceBean implements java.io.Serializable {
                 this.dataFileSvc,
                 this.permissionSvc,
                 this.commandEngine,
+                null,
                 this.systemConfig
         );
                 

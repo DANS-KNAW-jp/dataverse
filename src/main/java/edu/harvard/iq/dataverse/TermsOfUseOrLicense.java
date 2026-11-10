@@ -8,7 +8,7 @@ package edu.harvard.iq.dataverse;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.Objects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -287,6 +287,50 @@ public class TermsOfUseOrLicense implements Serializable {
         return true;
     }
 
+    public boolean equalsIgnoringIds(Object object) {
+        if (!(object instanceof TermsOfUseOrLicense)) {
+            return false;
+        }
+        var other = (TermsOfUseOrLicense) object;
+        if (!Objects.equals(this.getTermsOfUse(), other.getTermsOfUse())) {
+            return false;
+        }
+        if (!Objects.equals(this.getConfidentialityDeclaration(), other.getConfidentialityDeclaration())) {
+            return false;
+        }
+        if (!Objects.equals(this.getSpecialPermissions(), other.getSpecialPermissions())) {
+            return false;
+        }
+        if (!Objects.equals(this.getRestrictions(), other.getRestrictions())) {
+            return false;
+        }
+        if (!Objects.equals(this.getCitationRequirements(), other.getCitationRequirements())) {
+            return false;
+        }
+        if (!Objects.equals(this.getDepositorRequirements(), other.getDepositorRequirements())) {
+            return false;
+        }
+        if (!Objects.equals(this.getConditions(), other.getConditions())) {
+            return false;
+        }
+        if (!Objects.equals(this.getDisclaimer(), other.getDisclaimer())) {
+            return false;
+        }
+        if (this.getLicense() == null && other.getLicense() == null) {
+            return true;
+        }
+        if (this.getLicense() == null || other.getLicense() == null) {
+            return false;
+        }
+        if (!Objects.equals(this.getLicense().getName(), other.getLicense().getName())) {
+            return false;
+        }
+        if (!Objects.equals(this.getLicense().getUri(), other.getLicense().getUri())) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
         return this.getClass().getCanonicalName() + "[ id=" + id + " ]";
@@ -300,4 +344,3 @@ public class TermsOfUseOrLicense implements Serializable {
         this.fileMetadataList = fileMetadataList;
     }
 }
-

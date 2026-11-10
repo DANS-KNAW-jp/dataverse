@@ -358,6 +358,23 @@ public class JsonParser {
         return enums;
     }
 
+    public TermsOfUseOrLicense parseTermsOfUseOrLicense(JsonObject jsonObject) throws JsonParseException {
+        TermsOfUseOrLicense terms = new TermsOfUseOrLicense();
+        if ( jsonObject.containsKey("license") ) {
+            terms.setLicense(parseLicense(jsonObject.getJsonObject("license")));
+        }
+        terms.setTermsOfUse(jsonObject.getString("termsOfUse", null));
+        terms.setConfidentialityDeclaration(jsonObject.getString("confidentialityDeclaration", null));
+        terms.setSpecialPermissions(jsonObject.getString("specialPermissions", null));
+        terms.setRestrictions(jsonObject.getString("restrictions", null));
+        terms.setCitationRequirements(jsonObject.getString("citationRequirements", null));
+        terms.setDepositorRequirements(jsonObject.getString("depositorRequirements", null));
+        terms.setConditions(jsonObject.getString("conditions", null));
+        terms.setDisclaimer(jsonObject.getString("disclaimer", null));
+        // TODO return null if everything was empty?
+        return terms;
+    }
+
     public TermsOfAccess parseTermsOfAccess(JsonObject obj) throws JsonParseException {
         return parseTermsOfAccess(obj, null);
     }
@@ -867,6 +884,10 @@ public class JsonParser {
                 fileMetadata.setDescription(description);
                 fileMetadata.setDatasetVersion(dsv);
 
+                var termsOfUseOrLicense = parseTermsOfUseOrLicense(filemetadataJson);
+                if(termsOfUseOrLicense.getLicense()!=null || termsOfUseOrLicense.getTermsOfUse()!=null) {
+                    fileMetadata.setTermsOfUseOrLicense(termsOfUseOrLicense);
+                }
                 if ( filemetadataJson.containsKey("dataFile") ) {
                     DataFile dataFile = parseDataFile(filemetadataJson.getJsonObject("dataFile"));
                     dataFile.getFileMetadatas().add(fileMetadata);
