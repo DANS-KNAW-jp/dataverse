@@ -1,14 +1,40 @@
 ### file specific terms of use or license
 
-The new feature of file specific terms of use or license can be enabled by setting the JVM setting `-Ddataverse.files.terms-of-use-or-license=true`. When the setting is reset to the default false with a reboot, previously created file specific terms of use or licenses will still be visible in the API output, but new ones cannot be created.
+The new feature of file specific *terms of use or license* can be enabled with the JVM setting:
 
-The new feature is implemented with additional fields for API requests using the OptionalFileParams class and responses with the DatasetVersion respective FileMetadata classes. This affects the following API endpoints:
-- `POST /api/datasets/:id/add` (add files to a dataset version)
-- `GET /api/datasets/export?exporter=dataverse_json` (get dataset version with file metadata)
-- `GET /api/files/:id/metadata` (get metadata for a file in a dataset version)
-- `PUT /api/files/:id/metadata` (update one or more file in a dataset version)
+    -Ddataverse.files.terms-of-use-or-license=true
 
-Additional optional fields for the API requests are either ``license`` or ``termsOfUse``, but not both. More fields are possible in case of ``termsOfUse``.
+When a reboot resets the setting to the default false, previously created file specific *terms of use or license* will still be visible in the API output, but new ones cannot be created.
+
+The new feature is implemented with additional fields for API requests using the `OptionalFileParams` class and responses with the `DatasetVersion` and `FileMetadata` classes.
+
+Endpoints accepting `OptionalFileParams`:
+
+- `POST /api/datasets/:id/addFiles` (add files to a dataset version)
+- `POST /api/datasets/:id/replaceFiles` (replace files in a dataset version)
+- `POST /api/datasets/:id/files/metadata` (update metadata for multiple files)
+- `POST /api/datasets/:id/add` (add a file to a dataset version)
+- `POST /api/files/:id/metadata` (update file metadata)
+- `POST /api/files/:id/replace` (replace a file)
+
+Endpoints only returning `FileMetadata`, either directly or as part of a `DatasetVersion`.
+
+- `GET /api/datasets/:id` (latest accessible version)
+- `GET /api/datasets/:id/versions` (versions, with files)
+- `GET /api/datasets/:id/versions/:versionId` (a dataset version)
+- `GET /api/datasets/:id/versions/:versionId/files` (file metadata for a dataset version)
+- `GET /api/datasets/export?exporter=dataverse_json` (export a dataset version)
+- `GET /api/datasets/privateUrlDatasetVersion/:privateUrlToken`
+- `GET /api/datasets/previewUrlDatasetVersion/:previewUrlToken`
+- `PUT /api/datasets/:id/deleteMetadata` (update a dataset version by deleting metadata)
+- `PUT /api/datasets/:id/editMetadata` (update dataset metadata)
+- `PUT /api/datasets/:id/access` (update terms of access)
+- `GET /api/files/:id` (latest accessible file metadata)
+- `GET /api/files/:id/versions/:datasetVersionId` (file metadata for a dataset version)
+- `GET /api/files/:id/metadata` (published file metadata)
+- `GET /api/files/:id/metadata/draft` (draft file metadata)
+
+Additional optional fields for the API requests are either `license` or `termsOfUse`, but not both. More fields are possible in case of `termsOfUse`.
 
 ```json
 "license": {
@@ -26,9 +52,8 @@ Additional optional fields for the API requests are either ``license`` or ``term
 "specialPermissions": "My special permissions"
 ```
 
-API's return a DatasetVersion will also have additional fields. At least the ``files`` will have one of the fields ``license`` or ``termsOfUse``.
-Only if any of the files have file specific terms of use or license, the exported ``DatasetVersion`` JSON will include the ``additionalLicenses`` field.
-The following example shows the new fields in their context. Other fields are omitted for brevity.
+Only if any of the files have file specific *terms of use or license*, the exported `DatasetVersion` JSON will include the `additionalLicenses` field.
+Files with explicit *terms of use or license* will allways export the `license` or `termsOfUse` field in their `FileMetadata` JSON. When the feature is switched on, files without explicit terms will also have the additional fields.
 
 ```json
 {
@@ -58,4 +83,3 @@ The following example shows the new fields in their context. Other fields are om
   }
 }
 ```
-
